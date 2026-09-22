@@ -1,0 +1,71 @@
+# MAIN TASK
+Build a complete Library Room Booking System for PAF-IAST where students can book 2 discussion rooms with queue management and admin approval workflow
+
+## PROJECT STRUCTURE
+Current relevant files that need to be working on:
+- /frontend - React + TypeScript application
+- /backend - Node.js + Express API
+- /backend/prisma - Database schema and migrations
+
+## IMPLEMENTATION PLAN
+High-level approach (in steps mention, json):
+1. Environment Setup (Phase 1) - task_library_booking.json
+2. Backend Implementation (Phase 2) - backend_library_booking.json
+3. UI Specification Review (Phase 3) - progress_library_booking.json
+4. Frontend Implementation (Phase 4) - frontend_library_booking.json
+5. Integration & Testing (Phase 5) - progress_library_booking.json
+6. Deployment & Documentation (Phase 6) - progress_library_booking.json
+
+## TASKS
+Please follow the JSON files exactly to:
+1. Setup backend environment with Node.js, TypeScript, Express, and Prisma (backend_library_booking.json - lines 9-34)
+2. Create database schema with Room, Student, Booking, and Member tables (backend_library_booking.json - lines 36-125)
+3. Implement authentication system with JWT (backend_library_booking.json - lines 127-141)
+4. Build all API endpoints for rooms, bookings, queue, and students (backend_library_booking.json - lines 143-240)
+5. Setup frontend environment with React, TypeScript, Vite, and Tailwind (frontend_library_booking.json - lines 9-42)
+6. Implement student dashboard with calendar, room selection, and time slot grid (frontend_library_booking.json - lines 74-108)
+7. Create admin dashboard with booking approval and queue management (frontend_library_booking.json - lines 110-134)
+8. Integrate frontend with backend APIs using React Query (frontend_library_booking.json - lines 195-230)
+
+## IMPORTANT REQUIREMENTS
+
+⚠️ DO NOT MODIFY:
+- Database schema structure (already defined in backend_library_booking.json)
+- API endpoint structure (already specified)
+- Component architecture (already documented)
+
+✅ MUST PRESERVE:
+- FIFO queue system with max 5 people per slot
+- Working days only validation (Mon-Fri, next 3 days)
+- One booking per day per student rule
+- JWT authentication for student/admin roles
+
+✅ IMPLEMENT EXACTLY AS SHOWN:
+- Database tables: Room, Student, Booking, Member with specified fields
+- API endpoints as defined in backend_library_booking.json
+- UI components as specified in frontend_library_booking.json
+- Business logic for queue management and working days validation
+
+## REFERENCE WORK
+Use the code snippets in the JSON files as your implementation guide.
+Each file shows:
+- Which directory to work in (/frontend or /backend)
+- What packages to install
+- What the implementation should be
+- File structure and component hierarchy
+
+## DATA MAPPING
+- ROOMS table: Stores booking slots with status (ACTIVE/PENDING/APPROVED) and queue count
+- STUDENTS table: User information with role (STUDENT/ADMIN)
+- BOOKINGS table: Individual requests with status and queue position
+- MEMBERS table: Group members associated with each booking
+
+## SUCCESS CRITERIA
+After implementation:
+- Students can successfully book rooms through the UI
+- Queue system works correctly (FIFO, max 5, auto-movement)
+- Admin can approve/reject bookings through dashboard
+- Working days validation enforced (no weekends)
+- Authentication system functional for both roles
+- All API endpoints working with proper error handling
+- Responsive UI that works on mobile and desktop

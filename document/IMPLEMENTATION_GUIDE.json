@@ -1,0 +1,594 @@
+{
+  "project": "PAF-IAST Library Room Booking System",
+  "version": "2.0.0",
+  "objective": "Remove student authentication while keeping admin authentication",
+  "implementation": {
+    "phases": [
+      {
+        "phase": 1,
+        "name": "Setup & Context Creation",
+        "tasks": [
+          {
+            "id": 1,
+            "file": "src/contexts/GuestContext.tsx",
+            "type": "create",
+            "description": "Create GuestContext to store temporary student data",
+            "purpose": "Manage guest student session without authentication",
+            "keyFeatures": [
+              "Store registrationNo, name, phone, email, semester",
+              "localStorage persistence",
+              "Form validation",
+              "Session recovery"
+            ],
+            "stateStructure": {
+              "guestData": {
+                "registrationNo": "string",
+                "name": "string",
+                "phoneNumber": "string",
+                "email": "string",
+                "semester": "string"
+              },
+              "isGuest": "boolean"
+            },
+            "methods": [
+              "setGuestStudent(data)",
+              "getGuestStudent()",
+              "clearGuestStudent()",
+              "validateGuestData()"
+            ]
+          },
+          {
+            "id": 2,
+            "file": "src/components/GuestForm.tsx",
+            "type": "create",
+            "description": "Create GuestForm component to collect student details",
+            "purpose": "Collect student information from guests before booking",
+            "features": [
+              "Form fields: registrationNo, name, phone, email, semester",
+              "React Hook Form + Zod validation",
+              "Auto-save to localStorage",
+              "Progressive disclosure UI",
+              "Real-time validation"
+            ],
+            "validationRules": {
+              "registrationNo": {
+                "required": true,
+                "pattern": "YYYY-DEPT-XXX",
+                "minLength": 8,
+                "maxLength": 15
+              },
+              "name": {
+                "required": true,
+                "minWords": 2,
+                "pattern": "^[a-zA-Z\\s]+$"
+              },
+              "phoneNumber": {
+                "required": true,
+                "pattern": "^\\+92[0-9]{10}$",
+                "description": "Pakistan phone format: +92XXXXXXXXXX"
+              },
+              "email": {
+                "required": true,
+                "pattern": "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"
+              },
+              "semester": {
+                "required": true,
+                "pattern": "^(1st|2nd|3rd|4th|5th|6th|7th|8th|[1-8])$"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "phase": 2,
+        "name": "Authentication Refactoring",
+        "tasks": [
+          {
+            "id": 3,
+            "file": "src/contexts/AuthContext.tsx",
+            "type": "modify",
+            "description": "Refactor AuthContext to support guest mode",
+            "changes": [
+              "Add userType: 'GUEST' | 'STUDENT' | 'ADMIN'",
+              "Support guest state alongside authenticated state",
+              "Modify login() to accept userType parameter",
+              "Add isGuest() helper method",
+              "Update logout() to clear guest data",
+              "Add guest persistence to localStorage"
+            ],
+            "newState": {
+              "user": "Student | null",
+              "token": "string | null",
+              "userType": "'GUEST' | 'STUDENT' | 'ADMIN'",
+              "isAuthenticated": "boolean",
+              "isAdmin": "boolean",
+              "isGuest": "boolean"
+            },
+            "modifiedMethods": {
+              "login": {
+                "signature": "(token: string, user: Student, userType: 'STUDENT' | 'ADMIN') => void",
+                "behavior": "Sets userType based on parameter"
+              },
+              "logout": {
+                "behavior": "Clears user, token, and guest data"
+              },
+              "setGuestMode": {
+                "signature": "(guestData: GuestStudent) => void",
+                "behavior": "Activates guest mode with data"
+              },
+              "exitGuestMode": {
+                "signature": "() => void",
+                "behavior": "Clears guest data"
+              }
+            }
+          },
+          {
+            "id": 4,
+            "file": "src/hooks/useAuthErrorHandler.ts",
+            "type": "modify",
+            "description": "Update error handler for guest mode",
+            "changes": [
+              "Handle guest state in error handling",
+              "Don't logout guests on auth errors",
+              "Only handle errors for authenticated users",
+              "Update navigation logic"
+            ]
+          }
+        ]
+      },
+      {
+        "phase": 3,
+        "name": "Routing Structure Update",
+        "tasks": [
+          {
+            "id": 5,
+            "file": "src/App.tsx",
+            "type": "modify",
+            "description": "Update routing for guest access",
+            "changes": [
+              "Add route: /book -> StudentDashboard (no auth)",
+              "Keep route: /admin -> AdminRoute (admin auth)",
+              "Update redirect: / -> /book",
+              "Update navigation logic"
+            ],
+            "newRoutes": {
+              "/book": {
+                "component": "StudentDashboard",
+                "auth": false,
+                "description": "Guest booking page"
+              },
+              "/admin": {
+                "component": "AdminDashboard",
+                "auth": true,
+                "role": "ADMIN",
+                "description": "Admin panel"
+              },
+              "/login": {
+                "component": "LoginPage",
+                "auth": false,
+                "description": "Admin login only"
+              },
+              "/": {
+                "redirect": "/book",
+                "description": "Default redirect"
+              }
+            },
+            "removedRoutes": [
+              "/student - replaced with /book"
+            ]
+          },
+          {
+            "id": 6,
+            "file": "src/components/ProtectedRoute.tsx",
+            "type": "modify",
+            "description": "Update protected route to allow guests",
+            "changes": [
+              "Allow guest access to student pages",
+              "Redirect guests to /book if needed",
+              "Only require auth for authenticated students",
+              "Maintain admin-only routes"
+            ],
+            "logic": {
+              "guest": "Allow access, show guest interface",
+              "authenticated": "Normal auth check",
+              "unauthenticated": "Redirect to /login or /book based on route"
+            }
+          }
+        ]
+      },
+      {
+        "phase": 4,
+        "name": "Student Dashboard Transformation",
+        "tasks": [
+          {
+            "id": 7,
+            "file": "src/pages/StudentDashboard.tsx",
+            "type": "modify",
+            "description": "Transform to guest-first interface",
+            "changes": [
+              "Import and use GuestContext",
+              "Check for guest data on mount",
+              "Show GuestForm if no data exists",
+              "Show booking interface if guest data exists",
+              "Add 'Change Student Details' option",
+              "Remove auth requirements",
+              "Update header to show guest status",
+              "Hide 'My Bookings' tab for guests"
+            ],
+            "componentFlow": {
+              "noGuestData": "Show GuestForm",
+              "hasGuestData": "Show booking interface with edit option",
+              "editMode": "Show GuestForm with pre-filled data"
+            },
+            "headerChanges": {
+              "old": "Show user registrationNo",
+              "new": "Show 'Guest: [Name]' with edit button"
+            }
+          }
+        ]
+      },
+      {
+        "phase": 5,
+        "name": "Booking Flow Updates",
+        "tasks": [
+          {
+            "id": 8,
+            "file": "src/components/BookingModal.tsx",
+            "type": "modify",
+            "description": "Update booking modal to use guest data",
+            "changes": [
+              "Import GuestContext",
+              "Use guest student data if available",
+              "Remove auth-dependent auto-fill",
+              "Update validation for guest data",
+              "Add guest data to submission payload",
+              "Show guest data in booking summary"
+            ],
+            "dataSources": {
+              "authenticated": "Use user from AuthContext",
+              "guest": "Use guest from GuestContext",
+              "fallback": "Empty form fields"
+            },
+            "submissionData": {
+              "roomId": "string (required)",
+              "studentId": "string (optional, only for authenticated)",
+              "registrationNo": "string (from guest or auth)",
+              "applicantName": "string (from guest or auth)",
+              "applicantPhone": "string (from guest or auth)",
+              "applicantEmail": "string (from guest or auth)",
+              "applicantSemester": "string (from guest or auth)",
+              "groupMemberCount": "number (from form)",
+              "members": "array (from form, optional)"
+            }
+          },
+          {
+            "id": 9,
+            "file": "src/lib/api.ts",
+            "type": "modify",
+            "description": "Update API client for guest bookings",
+            "changes": [
+              "Update bookings.create() to accept guest data",
+              "Support both authenticated and guest submissions",
+              "Keep admin authentication intact",
+              "Remove student auth requirement from API calls",
+              "Add data source detection (guest vs auth)"
+            ],
+            "bookingCreate": {
+              "parameters": {
+                "roomId": "string",
+                "studentId": "string (optional)",
+                "registrationNo": "string",
+                "applicantName": "string",
+                "applicantPhone": "string",
+                "applicantEmail": "string",
+                "applicantSemester": "string",
+                "groupMemberCount": "number",
+                "members": "array (optional)"
+              },
+              "behavior": "Use authenticated user data OR guest data based on context"
+            },
+            "authPreservation": {
+              "admin": "Keep admin login and auth",
+              "student": "Remove student auth from API calls"
+            }
+          }
+        ]
+      },
+      {
+        "phase": 6,
+        "name": "Type Definitions Update",
+        "tasks": [
+          {
+            "id": 10,
+            "file": "src/types/api.ts",
+            "type": "modify",
+            "description": "Update types for guest booking support",
+            "changes": [
+              "Add GuestStudent interface",
+              "Update Booking interface to make studentId optional",
+              "Add registrationNo field to Booking",
+              "Update BookingFormData",
+              "Add userType to AuthResponse"
+            ],
+            "newTypes": {
+              "GuestStudent": {
+                "registrationNo": "string",
+                "name": "string",
+                "phoneNumber": "string",
+                "email": "string",
+                "semester": "string"
+              },
+              "Booking": {
+                "id": "string",
+                "studentId": "string (optional)",
+                "registrationNo": "string (required)",
+                "applicantName": "string (required)",
+                "applicantPhone": "string (required)",
+                "applicantEmail": "string (required)",
+                "applicantSemester": "string (required)",
+                "groupMemberCount": "number",
+                "requestStatus": "'PENDING' | 'APPROVED' | 'REJECTED'",
+                "queuePosition": "number",
+                "createdAt": "string",
+                "updatedAt": "string"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "phase": 7,
+        "name": "Login Page Simplification",
+        "tasks": [
+          {
+            "id": 11,
+            "file": "src/pages/LoginPage.tsx",
+            "type": "modify",
+            "description": "Remove student login, keep admin only",
+            "changes": [
+              "Remove student/admin toggle",
+              "Keep only admin login form",
+              "Update title and description",
+              "Hide student registration option",
+              "Update redirect logic to /admin",
+              "Add helper text for guest booking"
+            ],
+            "uiChanges": {
+              "title": "PAF-IAST Library - Admin Panel",
+              "description": "Administrator Login",
+              "studentNote": "Students can book directly at /book",
+              "removed": [
+                "Student Login tab",
+                "Student registration link",
+                "Student login logic"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "phase": 8,
+        "name": "Styling & UX Enhancements",
+        "tasks": [
+          {
+            "id": 12,
+            "file": "src/index.css",
+            "type": "modify",
+            "description": "Add styles for guest mode",
+            "changes": [
+              "Add .guest-badge class",
+              "Add .guest-form styles",
+              "Add .guest-header styles",
+              "Ensure consistency with existing design",
+              "Add focus states for guest form"
+            ],
+            "newStyles": {
+              ".guest-badge": {
+                "purpose": "Display guest status in header",
+                "classes": "px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs"
+              },
+              ".guest-form": {
+                "purpose": "Style guest student details form",
+                "classes": "bg-white p-6 rounded-lg shadow-sm"
+              },
+              ".guest-header": {
+                "purpose": "Style header for guest mode",
+                "classes": "flex items-center gap-4"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "testing": {
+      "testCases": [
+        {
+          "scenario": "Guest Booking Flow",
+          "steps": [
+            "Visit /book without login",
+            "GuestForm appears automatically",
+            "Fill all student details",
+            "Click 'Continue Booking'",
+            "See calendar and time slots",
+            "Select date and time",
+            "Click available time slot",
+            "BookingModal opens with guest data",
+            "Add group members",
+            "Submit booking",
+            "See success message",
+            "Booking added to queue"
+          ],
+          "expected": "Booking created successfully with guest data"
+        },
+        {
+          "scenario": "Guest Data Persistence",
+          "steps": [
+            "Fill guest form partially",
+            "Refresh page",
+            "Data should be restored",
+            "Complete form",
+            "Submit booking",
+            "Data should be cleared"
+          ],
+          "expected": "Data persists during session, cleared after booking"
+        },
+        {
+          "scenario": "Admin Authentication",
+          "steps": [
+            "Visit /admin",
+            "Redirected to /login",
+            "Login with admin credentials",
+            "See admin dashboard",
+            "View guest bookings with student details",
+            "Approve/reject bookings"
+          ],
+          "expected": "Admin flow works unchanged"
+        },
+        {
+          "scenario": "Guest Data Validation",
+          "steps": [
+            "Visit /book",
+            "Try to submit empty form",
+            "See validation errors",
+            "Enter invalid registration number",
+            "See error message",
+            "Enter valid data",
+            "Validation passes"
+          ],
+          "expected": "All validation rules enforced"
+        }
+      ],
+      "edgeCases": [
+        "Refresh page during guest booking",
+        "Navigate away and return",
+        "Try to book without filling form",
+        "Enter invalid data",
+        "Network error during booking",
+        "Duplicate booking attempt",
+        "Clear guest data mid-booking"
+      ]
+    },
+    "validation": {
+      "registrationNumber": {
+        "required": true,
+        "pattern": "^[0-9]{4}-[A-Z]{2,3}-[0-9]{3,4}$",
+        "example": "2021-CS-123",
+        "errorMessage": "Invalid registration number format"
+      },
+      "name": {
+        "required": true,
+        "minWords": 2,
+        "pattern": "^[a-zA-Z\\s]+$",
+        "errorMessage": "Name must contain only letters and spaces"
+      },
+      "phone": {
+        "required": true,
+        "pattern": "^\\+92[0-9]{10}$",
+        "example": "+923001234567",
+        "errorMessage": "Invalid phone number format"
+      },
+      "email": {
+        "required": true,
+        "pattern": "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$",
+        "errorMessage": "Invalid email format"
+      },
+      "semester": {
+        "required": true,
+        "pattern": "^(1st|2nd|3rd|4th|5th|6th|7th|8th|[1-8])$",
+        "errorMessage": "Invalid semester format"
+      }
+    },
+    "backwardsCompatibility": {
+      "existingAuthenticatedStudents": {
+        "behavior": "Can still login if needed",
+        "options": [
+          "Login to see booking history",
+          "Use guest booking (no login required)",
+          "Both modes work simultaneously"
+        ]
+      },
+      "adminDashboard": {
+        "behavior": "Shows all bookings (guest + authenticated)",
+        "changes": [
+          "Filter by registration number",
+          "Search by student details",
+          "No changes to approval flow"
+        ]
+      }
+    },
+    "security": {
+      "clientSideValidation": [
+        "Form field validation",
+        "Input sanitization",
+        "XSS prevention"
+      ],
+      "dataHandling": [
+        "localStorage for guest session only",
+        "No sensitive data stored",
+        "Clear data after booking"
+      ],
+      "backendConsiderations": [
+        "Server-side validation",
+        "SQL injection prevention",
+        "Duplicate registration check"
+      ]
+    },
+    "performance": {
+      "optimizations": [
+        "Debounced form validation",
+        "localStorage for session recovery",
+        "Optimized re-renders",
+        "Lazy loading of components"
+      ],
+      "metrics": [
+        "Guest form completion rate",
+        "Booking success rate",
+        "Error rate",
+        "User satisfaction"
+      ]
+    },
+    "accessibility": {
+      "requirements": [
+        "ARIA labels on all form fields",
+        "Keyboard navigation support",
+        "Screen reader announcements",
+        "Focus management",
+        "Error announcements"
+      ],
+      "wcag": "WCAG 2.1 AA compliant"
+    },
+    "rollback": {
+      "procedure": [
+        "Restore AuthContext backup",
+        "Restore LoginPage with student option",
+        "Restore ProtectedRoute logic",
+        "Remove GuestContext",
+        "Test authenticated flow"
+      ],
+      "backupFiles": [
+        "src/contexts/AuthContext.tsx.backup",
+        "src/pages/LoginPage.tsx.backup",
+        "src/pages/StudentDashboard.tsx.backup"
+      ]
+    },
+    "estimatedDuration": {
+      "phase1": "1 day",
+      "phase2": "1 day",
+      "phase3": "0.5 days",
+      "phase4": "1 day",
+      "phase5": "1 day",
+      "phase6": "0.5 days",
+      "phase7": "0.5 days",
+      "phase8": "0.5 days",
+      "total": "6 days"
+    },
+    "successMetrics": [
+      "100% guest booking completion",
+      "0% authentication errors for students",
+      "Admin functionality unchanged",
+      "Form validation 100% effective",
+      "Performance unchanged",
+      "Accessibility maintained"
+    ]
+  }
+}

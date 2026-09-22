@@ -1,0 +1,67 @@
+{
+  "page": "{{pageName}}",
+  "description": "{{description}}",
+  "components": [
+    {
+      "name": "{{componentName}}",
+      "targetFile": "{{targetFilePath}}",
+      "sourceFile": "{{sourceFilePath}}",
+      "functionality": [
+        {
+          "name": "{{handlerName}}",
+          "type": "{{handlerType}}",
+          "description": "{{handlerDescription}}",
+          "actions": [
+            "{{action1}}",
+            "{{action2}}",
+            "{{action3}}"
+          ]
+        }
+      ],
+      "apiCalls": [
+        {
+          "method": "{{apiMethod}}",
+          "params": {
+            "{{paramKey1}}": "{{paramValue1}}",
+            "{{paramKey2}}": "{{paramValue2}}"
+          },
+          "onSuccess": "{{onSuccessAction}}",
+          "onError": "{{onErrorAction}}"
+        }
+      ],
+      "features": [
+        "{{feature1}}",
+        "{{feature2}}",
+        "{{feature3}}"
+      ],
+      "state": {
+        "{{stateKey1}}": "{{stateType1}}",
+        "{{stateKey2}}": "{{stateType2}}"
+      }
+    }
+  ],
+  "sharedLogic": {
+    "{{sharedModule1}}": {
+      "file": "{{sharedFile1}}",
+      "usage": "{{usageDescription1}}",
+      "noChanges": "{{noChangesFlag1}}"
+    },
+    "{{sharedModule2}}": {
+      "file": "{{sharedFile2}}",
+      "usage": "{{usageDescription2}}",
+      "noChanges": "{{noChangesFlag2}}"
+    }
+  },
+  "dependencies": [
+    "{{dependency1}}",
+    "{{dependency2}}"
+  ],
+  "preservedFromExisting": [
+    "{{preservedItem1}}",
+    "{{preservedItem2}}"
+  ],
+  "replacedFromSource": [
+    "{{replacedItem1}}",
+    "{{replacedItem2}}"
+  ]
+}

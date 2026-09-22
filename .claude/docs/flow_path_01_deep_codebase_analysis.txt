@@ -1,0 +1,76 @@
+🎯 Repeatable Template for  Features
+
+  Process Flow
+
+  Documentation Research
+      ↓
+  Structured JSON Planning
+      ↓
+  Backend-First Implementation
+      ↓
+  UI Specification Review ← CRITICAL STEP - USER FEEDBACK LOOP
+      ↓
+  Question-Driven Clarification ← ENSURE COMPLETE UNDERSTANDING
+      ↓
+  Frontend Implementation
+      ↓
+  End-to-End Testing
+
+Each Step Produces:
+
+1. Documentation Research → Initial findings document
+2. Structured JSON Planning → 4 JSON files:
+   - `codebase_map.json` - File structure and component hierarchy
+   - `feature_inventory.json` - All features and their locations
+   - `data_flow.json` - Data flow patterns and state management
+   - `interaction_patterns.json` - Component interactions and props
+3. Search & Exploration → Verified implementation details
+4. Documentation → Complete architecture documentation
+5. Question-Driven Clarification → Resolved ambiguities
+6. Implementation Planning → Technical approach document
+7. E2E Verification → Validated understanding
+
+### Flow-Path 1: Deep Codebase Analysis & Understanding
+**When to use:** New feature investigation, reverse engineering, mapping existing functionality
+
+### Process Flow
+
+**Documentation Research**
+  ↓
+  Structured Analysis (Code Map + Feature Inventory + Data Flow + Interaction Patterns)
+  ↓
+  Search & Exploration (Grep patterns, Glob files, Read key components)
+  ↓
+  Documentation ← CRITICAL STEP - CREATE COMPREHENSIVE MAP
+  ↓
+  Question-Driven Clarification ← ENSURE COMPLETE UNDERSTANDING
+  ↓
+  Implementation Planning ← PLAN BASED ON DISCOVERED ARCHITECTURE
+  ↓
+  End-to-End Verification
+
+### Critical Success Factors:
+
+- ✅ Systematic file exploration (use Grep, Glob, Read tools)
+- ✅ Map data flow and state management patterns
+- ✅ Document component hierarchy and prop drilling
+- ✅ Identify existing utilities and helpers
+- ✅ Trace feature implementation across files
+- ✅ Note any TODOs, FIXMEs, or commented code
+- ✅ Verify findings by reading actual code (not just comments)
+
+### Tools to Use:
+- **Grep**: Find patterns across codebase (e.g., `isLocked`, `handleCompleteDay`)
+- **Glob**: Locate files by pattern (e.g., `**/*.jsx`, `**/components/**/*.js`)
+- **Read**: Examine specific files for implementation details
+- **Bash**: Run commands for file operations and searches
+
+### What to Document:
+1. **File Structure**: How components are organized
+2. **Component Hierarchy**: Parent-child relationships
+3. **Data Flow**: How data moves through the app
+4. **State Management**: Where state lives and how it's updated
+5. **Props Drilling**: How props pass through components
+6. **Utilities**: Helper functions and shared logic
+7. **API Calls**: Backend integration patterns
+8. **Lifecycle**: When components mount/update/unmount

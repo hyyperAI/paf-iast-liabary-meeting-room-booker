@@ -1,0 +1,68 @@
+
+A system where there's two different front end and one backend. For my client, one dashboard is for admin and one for user. 
+
+Statement:
+A system where students can request allocation of libaary rooms. i.e: 2 discussion rooms. Admin will then accept or reject each student requests after reviewing. All data will be stored in database for future use, no dashboard...
+
+- student flow chart:
+Come select date, -> room appear & select 1 or 2-> Select time -> form appear (fill the form and submit request)
+- Admin flow chart:
+Come select room -> select date -> time appear and select it -> check students request and approve and reject it
+
+# Database structure 
+
+three tables:
+1. Rooms: id, no (only 1 & 2), time & date, status ( active, pending, approve )
+2. Students: id, registration no, phone number, email, semester, queue no, request status
+3. Members: id, room_id (FK) , user_id (FK), name, email
+
+## handling of backend:
+Queue logic: Apis for queue logic, that takes in member details and output status of timeslot based on which UI changes
+API's : CRUD on each table. logic of calling student's member ( create only api's don't focus on front end at the moment )
+ students should be prevented from booking multiple slots on the same day. 
+
+Front-end implementation details:
+
+# USER PAGE
+- Student dashboard: a single page dashboard, which has these as respectively:
+1. contain a heading of PAF-IAST liabary room booking system
+2. A full month calender with forward section (30 days, current month) to select date, logic of selecting date is: current date + ne + next 2 days are clickable and unlocked, others are lock. { include example }
+3. When user select a day, a section appear, 1x2 blocks. Room 1 and Room 2 written in them. After selecting room 1 and room 2
+4. The page didn't reload and user will see a time slot in 2x4 matrix (2 rows and 4 columns). Each card will show a a hourly slot from 9 am-5 pm. 
+5. User click on any time slot and pop-up will emerge that user has to fill: Name, registration, phone number, email, semester. This will be in 2 columns and below all of this there's member section. default is 3 and include name and registration number (minium for 2 members should be there)
+6. And below the form when all information is put, there's 2 button ( submit application will be unlocked and if user click it all of this information will save to respective them table in database. ( date, room, time, student information, member information) )- 
+In depth UI structure:
+- The page will be stagr by stage, user has to go section by section
+- Calender would be monthly bases, where saturday subday are red colors ( means non-clickable )
+- Room 1 and room 2 are 2 block in one column
+- time slot is of 1 hour each total = 8 from 9-5 
+- the form appear should ask for user details and member details after which the button will be unlocked, once successfull api is called a pop-up showing that user already booked it will appear. 
+- All of this should be consistent. 
+
+Time button :
+time      ---------------------          status
+Queue (x/y)
+Student name   ---------------     registration number
+ 
+ with change in status the background will be change: active- > green, approve: blue, pending -> yellow (status comes with api response)
+ 
+ --------------------
+ 
+#  ADMIN DASHBOARD:
+A Saas dashboard with a minimalistic navbar of ( room1, room 2, Data )
+
+- When click on room 1: 
+    - A full month calender with forward section (30 days, current month) to select date, logic of selecting date is: all previous days + current date + next 2 days are clickable and unlocked, others are lock. { include example }
+    - when click on any date:
+        - a horizontal time slots structure comes: 
+        - | time_range |: {status} 
+    - A horizontal drop will show date and time with colors (blue, green, yellow) based on status, when click on it, it expands and show information about each applicat request and 2 buttons of accept and reject:
+- Same as Room 2
+- Data: A UI to filter, search, update and edit database (not at the moment)
+
+## QUEUE SYSTEM:
+When a student register request and admin didn't approve, the slot didn't block but instead it's status = pending, and when another student come in and want to register it's go to FIFO queue and starts from 2. 
+
+
+So first slot is active -> student register application for booking -> queue id = 1, now status -> pending and total_queue_member=0, 
+status -> pending & color = yellow -> another student came and register queue id = 2 and toal_queue_member = 1 

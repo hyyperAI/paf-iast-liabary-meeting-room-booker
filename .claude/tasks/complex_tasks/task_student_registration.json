@@ -1,0 +1,40 @@
+{
+  "task_id": "student_registration",
+  "title": "Student Registration Feature Implementation",
+  "description": "Enable student self-registration functionality in the PAF-IAST Library Management System",
+  "goal": "Allow new students to register themselves in the system with proper validation and authentication",
+  "final_result": "Students can access /register page, fill the form, and successfully create an account. The registration link is visible on the login page for non-admin users.",
+  "status": "IMPLEMENTATION_PENDING",
+  "complexity": "medium",
+  "estimated_files": 5,
+  "key_features": [
+    "Student registration form with validation",
+    "Zod schema validation for all fields",
+    "Integration with backend auth.register endpoint",
+    "Success/error handling with proper user feedback",
+    "Navigation back to login page after registration"
+  ],
+  "validation_requirements": [
+    "Registration number format validation",
+    "Phone number format validation",
+    "Email domain validation (@paf-iast.edu.pk)",
+    "Semester field validation",
+    "Password minimum length (6 characters)"
+  ],
+  "user_flow": [
+    "User navigates to /register",
+    "User fills out registration form",
+    "Form validation triggers on submit",
+    "API call to backend /auth/register",
+    "Success: redirect to /login with success message",
+    "Error: display error message below form"
+  ],
+  "current_state": "COMMENTED_OUT",
+  "next_actions": [
+    "Uncomment RegisterPage import in App.tsx",
+    "Uncomment /register route in App.tsx",
+    "Uncomment registration link in LoginPage.tsx",
+    "Test registration flow end-to-end",
+    "Verify backend endpoint is functional"
+  ]
+}

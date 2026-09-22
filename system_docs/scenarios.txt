@@ -1,0 +1,475 @@
+================================================================================
+                        PAF-IAST LIBRARY MANAGEMENT SYSTEM
+                              SCENARIOS & EDGE CASES
+================================================================================
+
+
+================================================================================
+                    SCENARIO 1: QUEUE AUTO-MOVEMENT
+================================================================================
+
+What Happens When Admin Rejects First Student in Queue
+
+BEFORE REJECTION:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  Slot: 9:00-10:00  |  Status: PENDING (YELLOW)  |  Queue: 2/5              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Request #1: Ali Ahmed    ← ADMIN REJECTS THIS                             │
+│  Request #2: Usman Tariq  ← Will move to Position 1                        │
+│  Request #3: Hassan Khan  ← Will move to Position 2                        │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+AFTER REJECTION:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  Slot: 9:00-10:00  |  Status: PENDING (YELLOW)  |  Queue: 1/5              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Request #1: Usman Tariq   ← NOW AT POSITION 1                             │
+│  Request #2: Hassan Khan   ← NOW AT POSITION 2                             │
+│                                                                             │
+│  Slot status remains PENDING                                                │
+│  Remaining queue members automatically move up (FIFO)                       │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Backend Logic:
+- When a request is rejected/deleted
+- Find all requests with same (room_id, date, time_slot)
+- Reorder queue_position: new_position = old_position - 1
+- If this was the only request → status changes to ACTIVE
+
+
+================================================================================
+                    SCENARIO 2: SIMULTANEOUS BOOKING
+================================================================================
+
+Race Condition: 2 Students Submit at Exact Same Time
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          TIMELINE (Milliseconds)                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  9:00:00.000 ─── Ali clicks "SUBMIT"                                        │
+│  9:00:00.001 ─── Usman clicks "SUBMIT"                                      │
+│  9:00:00.002 ─── Both API calls reach server                                │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Backend Handling:
+1. Use database transactions
+2. Apply row-level locking on the time slot
+3. Process requests sequentially
+4. Return queue positions based on arrival order
+
+Result:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  Slot: 9:00-10:00  |  Status: PENDING (YELLOW)  |  Queue: 1/5              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Position 1: Ali Ahmed       ← First to reach server                       │
+│  Position 2: Usman Tariq     ← Second to reach server                      │
+│                                                                             │
+│  No duplicate bookings created                                              │
+│  No data corruption                                                          │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Database Constraint:
+UNIQUE KEY (room_id, date, time_slot, student_id)
+
+
+================================================================================
+                    SCENARIO 3: ONE BOOKING PER DAY PER STUDENT
+================================================================================
+
+Rule: A student can only have ONE active booking request per day
+      (Applies to both Room 1 and Room 2 combined)
+
+Scenario: Student tries to book multiple slots
+
+STEP 1: Student books first slot successfully
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  ✓ SUCCESS! Request Submitted                                               │
+│                                                                             │
+│  Room: 1  |  Date: Jan 09, 2026  |  Time: 9:00-10:00                       │
+│  Queue Position: 1/5  |  Status: PENDING                                    │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+STEP 2: Student tries to book second slot same day
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                                                                     │   │
+│  │                      ⚠ BOOKING NOT ALLOWED                         │   │
+│  │                                                                     │   │
+│  │         You already have a booking for January 09, 2026             │   │
+│  │                                                                     │   │
+│  │         Students can only book one slot per day.                    │   │
+│  │                                                                     │   │
+│  │         Your Current Booking:                                       │   │
+│  │         Room 1 | 9:00-10:00 AM | Status: PENDING                   │   │
+│  │                                                                     │   │
+│  │                           [ OK ]                                    │   │
+│  │                                                                     │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Frontend Behavior:
+- Disable all time slots for that date
+- Show toast notification
+- Highlight user's current booking
+
+Backend Check:
+API: POST /api/bookings/check-eligibility
+{
+  "student_id": "FA21-BSE-001",
+  "date": "2026-01-09"
+}
+
+Response (if already has booking):
+{
+  "eligible": false,
+  "existing_booking": {
+    "room_id": 1,
+    "time_slot": "9:00-10:00",
+    "status": "PENDING"
+  }
+}
+
+
+================================================================================
+                    SCENARIO 4: TIME SLOT EXPIRY
+================================================================================
+
+Current Time: 9:30 AM on January 09, 2026
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│              SELECT TIME SLOT - ROOM 1 - JANUARY 09, 2026                   │
+│                                                                              │
+│  ┌─────────────────┬─────────────────┬─────────────────┬─────────────────┐ │
+│  │   9:00-10:00    │  10:00-11:00    │  11:00-12:00    │  12:00-1:00     │ │
+│  │                 │                 │                 │                 │ │
+│  │   STATUS:       │   STATUS:       │   STATUS:       │   STATUS:       │ │
+│  │   EXPIRED       │   ACTIVE        │   ACTIVE        │   ACTIVE        │ │
+│  │   (GRAY BG)     │   (GREEN BG)    │   (GREEN BG)    │   (GREEN BG)    │ │
+│  │                 │                 │                 │                 │ │
+│  │   [Not          │   [AVAILABLE]   │   [AVAILABLE]   │   [AVAILABLE]   │ │
+│  │    Available]   │   (Clickable)   │   (Clickable)   │   (Clickable)   │ │
+│  └─────────────────┴─────────────────┴─────────────────┴─────────────────┘ │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Backend Logic:
+FOR EACH time_slot:
+    IF current_time >= slot_end_time:
+        slot.status = "EXPIRED"
+        Disable booking
+    ELSE:
+        slot.status remains unchanged
+
+API Response:
+{
+  "room_id": 1,
+  "date": "2026-01-09",
+  "current_time": "09:30",
+  "slots": [
+    {
+      "time": "9:00-10:00",
+      "status": "EXPIRED",
+      "message": "This time slot has passed"
+    },
+    {
+      "time": "10:00-11:00",
+      "status": "ACTIVE",
+      "queue_count": 0
+    }
+  ]
+}
+
+Rules:
+- Expired slots cannot be booked
+- Admin can still view expired slot history
+- Expired slots show as grayed out
+
+
+================================================================================
+                    SCENARIO 5: ADMIN REJECTION OPTIONS
+================================================================================
+
+Admin has TWO ways to reject requests
+
+═══════════════════════════════════════════════════════════════════════════════
+                           OPTION A: REJECT SINGLE REQUEST
+═══════════════════════════════════════════════════════════════════════════════
+
+Admin clicks "REJECT" on Request #2 only
+
+BEFORE:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  Request #1: Ali Ahmed      [APPROVE] [REJECT]  ← Kept                      │
+│  Request #2: Usman Tariq    [APPROVE] [REJECT]  ← REJECTED                  │
+│  Request #3: Hassan Khan    [APPROVE] [REJECT]  ← Moves up                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+AFTER:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  Request #1: Ali Ahmed      [APPROVE] [REJECT]                              │
+│  Request #2: Hassan Khan    [APPROVE] [REJECT]  ← Moved to Position 2       │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+                           OPTION B: REJECT ALL REQUESTS
+═══════════════════════════════════════════════════════════════════════════════
+
+Admin clicks "REJECT ALL" button
+
+BEFORE:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  Slot: 9:00-10:00  |  Status: PENDING (YELLOW)  |  Queue: 2/5              │
+│                                                                             │
+│  Request #1: Ali Ahmed      [APPROVE] [REJECT]                              │
+│  Request #2: Usman Tariq    [APPROVE] [REJECT]                              │
+│  Request #3: Hassan Khan    [APPROVE] [REJECT]                              │
+│                                                                             │
+│  [ REJECT ALL ]                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+AFTER:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  Slot: 9:00-10:00  |  Status: ACTIVE (GREEN)  |  Queue: 0/5                │
+│                                                                             │
+│  All requests rejected and removed                                           │
+│  Slot is now available for new bookings                                     │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Confirmation Dialog for REJECT ALL:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                                                                     │   │
+│  │     ⚠ CONFIRM REJECT ALL?                                          │   │
+│  │                                                                     │   │
+│  │     This will reject ALL 3 pending requests for this slot.         │   │
+│  │     This action cannot be undone.                                  │   │
+│  │                                                                     │   │
+│  │                         [ CANCEL ]    [ CONFIRM REJECT ALL ]        │   │
+│  │                                                                     │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+                    SCENARIO 6: DATABASE FAILURE DURING BOOKING
+================================================================================
+
+Scenario: Submit clicked, API fails mid-process
+
+Backend Implementation:
+1. Use database TRANSACTION (BEGIN → COMMIT/ROLLBACK)
+2. If ANY step fails → ROLLBACK entire operation
+3. Return clear error message
+
+Error Response:
+{
+  "success": false,
+  "error_code": "ERR_901",
+  "error_type": "DATABASE_ERROR",
+  "message": "Connection to database failed. Please try again.",
+  "retry_possible": true
+}
+
+Frontend Handling:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                                                                     │   │
+│  │                      ⚠ CONNECTION ERROR                             │   │
+│  │                                                                     │   │
+│  │         Your booking could not be saved due to a connection         │   │
+│  │         issue. Please check your internet and try again.            │   │
+│  │                                                                     │   │
+│  │                         [ RETRY ]       [ CANCEL ]                  │   │
+│  │                                                                     │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Retry Logic:
+- On RETRY: Re-send API request
+- On CANCEL: Close modal, clear form
+- Maximum 3 retries, then show permanent error
+
+
+================================================================================
+                    SCENARIO 7: FORM PAGE REFRESH (DATA LOSS PREVENTION)
+================================================================================
+
+Scenario: User fills half the form, accidentally refreshes page
+
+Frontend Solution: Auto-save form data to localStorage
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          BOOKING REQUEST FORM                               │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                                                                     │   │
+│  │                      ↩ Welcome Back!                                │   │
+│  │                                                                     │   │
+│  │         We found your previously unsaved form data.                 │   │
+│  │                                                                     │   │
+│  │         Would you like to restore it?                               │   │
+│  │                                                                     │   │
+│  │                  [ RESTORE DATA ]      [ START FRESH ]              │   │
+│  │                                                                     │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Implementation:
+
+// Save to localStorage on every input change
+function saveFormData() {
+    const formData = {
+        studentName: document.getElementById('name').value,
+        regNo: document.getElementById('regNo').value,
+        phone: document.getElementById('phone').value,
+        email: document.getElementById('email').value,
+        semester: document.getElementById('semester').value,
+        members: [...],
+        lastUpdated: new Date().toISOString()
+    };
+    localStorage.setItem('bookingForm', JSON.stringify(formData));
+}
+
+// Restore on page load
+function restoreFormData() {
+    const saved = localStorage.getItem('bookingForm');
+    if (saved) {
+        const formData = JSON.parse(saved);
+        // Populate form fields
+        // Show restore prompt
+    }
+}
+
+// Clear after successful submission
+function clearFormData() {
+    localStorage.removeItem('bookingForm');
+}
+
+Additional Feature: Auto-clear after 24 hours
+- Check timestamp on page load
+- If older than 24 hours → discard and start fresh
+
+
+================================================================================
+                    SCENARIO 8: DUPLICATE MEMBER VALIDATION
+================================================================================
+
+Scenario: User tries to add same member twice to a booking
+
+Member Entry Screen:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           MEMBERS (Minimum 2 Required)                       │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│                                                                              │
+│  Member 1:                                                                  │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ Name: [ Hassan Khan    ]  Registration: [ FA21-BSE-002             ]│   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                              │
+│  Member 2:                                                                  │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ Name: [ Hassan Khan    ]  Registration: [ FA21-BSE-002             ]│   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                              │
+│  ⚠ Hassan Khan (FA21-BSE-002) is already added as Member 1                 │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Frontend Validation:
+1. On registration number blur event
+2. Check against already added members
+3. If duplicate → show warning and prevent addition
+
+Backend Validation (Primary Defense):
+{
+  "success": false,
+  "error_code": "ERR_302",
+  "message": "Member FA21-BSE-002 is already added to this booking"
+}
+
+Prevention Strategy:
+- Disable registration numbers already added
+- Show "Already Added" badge on dropdown selection
+- Real-time validation as user types
+
+
+================================================================================
+                    SCENARIO 9: ROOM MAINTENANCE / UNAVAILABILITY
+================================================================================
+
+Scenario: Room 1 is under maintenance, admin marks as unavailable
+
+Admin Action: Set room status to "MAINTENANCE"
+
+User View - Room Selection:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    SELECT ROOM - JANUARY 09, 2026                           │
+│                                                                              │
+│         ┌──────────────────────────┐    ┌──────────────────────────┐       │
+│         │                          │    │                          │       │
+│         │        ROOM 1            │    │        ROOM 2            │       │
+│         │                          │    │                          │       │
+│         │   🔧 UNDER MAINTENANCE   │    │    [Click to Select]     │       │
+│         │                          │    │                          │       │
+│         │   (Not Available)        │    │      AVAILABLE          │       │
+│         │                          │    │                          │       │
+│         │       [ DISABLED ]       │    │                          │       │
+│         │                          │    │                          │       │
+│         └──────────────────────────┘    └──────────────────────────┘       │
+│                                                                              │
+│  Note: Room 1 is temporarily unavailable due to maintenance.               │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+User View - Time Slots (if somehow accesses Room 1):
+┌─────────────────────────────────────────────────────────────────────────────┐
+│              SELECT TIME SLOT - ROOM 1 - JANUARY 09, 2026                   │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                                                                     │   │
+│  │              ⚠ ROOM CURRENTLY UNAVAILABLE                           │   │
+│  │                                                                     │   │
+│  │         Room 1 is under maintenance and not accepting bookings.     │   │
+│  │         Please select Room 2 or try another date.                   │   │
+│  │                                                                     │   │
+│  │                     [ GO TO ROOM 2 ]    [ SELECT OTHER DATE ]       │   │
+│  │                                                                     │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Admin Dashboard - Room Status:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     ROOM 1 - BOOKING MANAGEMENT                             │
+│                                                                              │
+│  Current Status: 🔧 MAINTENANCE                                             │
+│                                                                              │
+│  [ SET AS ACTIVE ]    [ SET AS MAINTENANCE ]                                │
+│                                                                              │
+│  When maintenance is complete, admin sets status back to ACTIVE             │
+│  All time slots become available for booking again                          │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+API Response:
+{
+  "room_id": 1,
+  "room_status": "MAINTENANCE",
+  "message": "Room is under maintenance",
+  "available_from": null  // null means until manually changed
+}
+
+
+================================================================================
+                              END OF SCENARIOS
+================================================================================

@@ -1,0 +1,450 @@
+{
+  "progressTracking": "student_auth_removal",
+  "totalPhases": 8,
+  "currentPhase": 1,
+  "status": "Planning Complete - Ready for Implementation",
+  "startDate": "To be set",
+  "estimatedCompletionDate": "To be calculated",
+  "phases": [
+    {
+      "phase": 1,
+      "name": "Setup & Context Creation",
+      "tasks": [
+        {
+          "id": 1,
+          "task": "Create GuestContext",
+          "file": "src/contexts/GuestContext.tsx",
+          "type": "create",
+          "priority": "high",
+          "dependencies": [],
+          "estimatedHours": 4,
+          "status": "pending",
+          "description": "Create context for managing guest student data with localStorage persistence",
+          "acceptanceCriteria": [
+            "Context created with guestData state",
+            "Methods: setGuestStudent, getGuestStudent, clearGuestStudent, validateGuestData",
+            "localStorage persistence works",
+            "TypeScript types compile"
+          ]
+        },
+        {
+          "id": 2,
+          "task": "Create GuestForm Component",
+          "file": "src/components/GuestForm.tsx",
+          "type": "create",
+          "priority": "high",
+          "dependencies": [1],
+          "estimatedHours": 6,
+          "status": "pending",
+          "description": "Build form component with react-hook-form and zod validation",
+          "acceptanceCriteria": [
+            "Form with 5 fields (registrationNo, name, phone, email, semester)",
+            "Real-time validation with zod schemas",
+            "Auto-save to localStorage on change",
+            "Success button disabled until valid",
+            "Matches design system styling"
+          ]
+        }
+      ],
+      "status": "pending",
+      "completion": "0%"
+    },
+    {
+      "phase": 2,
+      "name": "Authentication Refactoring",
+      "tasks": [
+        {
+          "id": 3,
+          "task": "Refactor AuthContext",
+          "file": "src/contexts/AuthContext.tsx",
+          "type": "modify",
+          "priority": "critical",
+          "dependencies": [1, 2],
+          "estimatedHours": 5,
+          "status": "pending",
+          "description": "Add userType and guest mode support to existing auth context",
+          "acceptanceCriteria": [
+            "userType property added",
+            "isGuest helper method implemented",
+            "login() accepts userType parameter",
+            "logout() clears guest data",
+            "Existing functionality preserved"
+          ]
+        },
+        {
+          "id": 4,
+          "task": "Update Auth Error Handler",
+          "file": "src/hooks/useAuthErrorHandler.ts",
+          "type": "modify",
+          "priority": "medium",
+          "dependencies": [3],
+          "estimatedHours": 2,
+          "status": "pending",
+          "description": "Update to handle guest mode without errors",
+          "acceptanceCriteria": [
+            "Doesn't logout guests on auth errors",
+            "Only handles authenticated user errors",
+            "Navigation works correctly"
+          ]
+        }
+      ],
+      "status": "pending",
+      "completion": "0%"
+    },
+    {
+      "phase": 3,
+      "name": "Routing Structure Update",
+      "tasks": [
+        {
+          "id": 5,
+          "task": "Update App.tsx Routing",
+          "file": "src/App.tsx",
+          "type": "modify",
+          "priority": "critical",
+          "dependencies": [3],
+          "estimatedHours": 3,
+          "status": "pending",
+          "description": "Update routing for guest access and admin-only login",
+          "acceptanceCriteria": [
+            "/book route added (no auth)",
+            "/admin route kept (admin auth)",
+            "/login shows admin only",
+            "/ redirects to /book",
+            "Routes work correctly"
+          ]
+        },
+        {
+          "id": 6,
+          "task": "Update ProtectedRoute",
+          "file": "src/components/ProtectedRoute.tsx",
+          "type": "modify",
+          "priority": "critical",
+          "dependencies": [5],
+          "estimatedHours": 2,
+          "status": "pending",
+          "description": "Allow guest access while preserving admin protection",
+          "acceptanceCriteria": [
+            "Guests can access student routes",
+            "Authenticated users work as before",
+            "Unauthenticated users redirected properly"
+          ]
+        }
+      ],
+      "status": "pending",
+      "completion": "0%"
+    },
+    {
+      "phase": 4,
+      "name": "Student Dashboard Transformation",
+      "tasks": [
+        {
+          "id": 7,
+          "task": "Transform StudentDashboard",
+          "file": "src/pages/StudentDashboard.tsx",
+          "type": "modify",
+          "priority": "critical",
+          "dependencies": [5, 6],
+          "estimatedHours": 6,
+          "status": "pending",
+          "description": "Update dashboard to show guest form or booking based on state",
+          "acceptanceCriteria": [
+            "GuestForm shows if no guest data",
+            "Booking interface shows if guest data exists",
+            "Header displays guest info with edit button",
+            "My Bookings tab hidden for guests",
+            "Backward compatible with authenticated students"
+          ]
+        }
+      ],
+      "status": "pending",
+      "completion": "0%"
+    },
+    {
+      "phase": 5,
+      "name": "Booking Flow Updates",
+      "tasks": [
+        {
+          "id": 8,
+          "task": "Update BookingModal",
+          "file": "src/components/BookingModal.tsx",
+          "type": "modify",
+          "priority": "critical",
+          "dependencies": [7],
+          "estimatedHours": 4,
+          "status": "pending",
+          "description": "Use guest data for booking when in guest mode",
+          "acceptanceCriteria": [
+            "Uses GuestContext data for guests",
+            "Pre-fills form from guest data",
+            "Validates guest data",
+            "Submission includes guest data"
+          ]
+        },
+        {
+          "id": 9,
+          "task": "Update API Client",
+          "file": "src/lib/api.ts",
+          "type": "modify",
+          "priority": "critical",
+          "dependencies": [8],
+          "estimatedHours": 3,
+          "status": "pending",
+          "description": "Support guest data in booking submission",
+          "acceptanceCriteria": [
+            "bookings.create() accepts guest data",
+            "Determines data source (guest vs auth)",
+            "Admin auth preserved",
+            "API calls work correctly"
+          ]
+        }
+      ],
+      "status": "pending",
+      "completion": "0%"
+    },
+    {
+      "phase": 6,
+      "name": "Type Definitions Update",
+      "tasks": [
+        {
+          "id": 10,
+          "task": "Update Type Definitions",
+          "file": "src/types/api.ts",
+          "type": "modify",
+          "priority": "high",
+          "dependencies": [8, 9],
+          "estimatedHours": 2,
+          "status": "pending",
+          "description": "Add guest types and update booking interface",
+          "acceptanceCriteria": [
+            "GuestStudent interface defined",
+            "Booking.studentId made optional",
+            "registrationNo added to Booking",
+            "TypeScript compiles without errors"
+          ]
+        }
+      ],
+      "status": "pending",
+      "completion": "0%"
+    },
+    {
+      "phase": 7,
+      "name": "Login Page Simplification",
+      "tasks": [
+        {
+          "id": 11,
+          "task": "Simplify LoginPage",
+          "file": "src/pages/LoginPage.tsx",
+          "type": "modify",
+          "priority": "medium",
+          "dependencies": [5],
+          "estimatedHours": 2,
+          "status": "pending",
+          "description": "Remove student login, keep admin only",
+          "acceptanceCriteria": [
+            "Student/Admin toggle removed",
+            "Only admin login form shown",
+            "Helper text added for guest booking",
+            "Admin authentication unchanged"
+          ]
+        }
+      ],
+      "status": "pending",
+      "completion": "0%"
+    },
+    {
+      "phase": 8,
+      "name": "Styling & UX Enhancements",
+      "tasks": [
+        {
+          "id": 12,
+          "task": "Update Styles",
+          "file": "src/index.css",
+          "type": "modify",
+          "priority": "low",
+          "dependencies": [7, 11],
+          "estimatedHours": 1,
+          "status": "pending",
+          "description": "Add styles for guest mode indicators",
+          "acceptanceCriteria": [
+            "guest-badge styles added",
+            "guest-form styles added",
+            "Consistent with existing design"
+          ]
+        }
+      ],
+      "status": "pending",
+      "completion": "0%"
+    }
+  ],
+  "testingPhase": {
+    "name": "End-to-End Testing",
+    "priority": "critical",
+    "estimatedHours": 8,
+    "tasks": [
+      {
+        "id": 13,
+        "task": "Guest Booking Flow Test",
+        "description": "Test complete guest booking from form to submission",
+        "acceptanceCriteria": [
+          "Visit /book without login",
+          "GuestForm appears",
+          "Fill all fields with valid data",
+          "Validation works correctly",
+          "Booking modal opens",
+          "Guest data pre-filled",
+          "Submit booking",
+          "Success message shown",
+          "Guest data cleared"
+        ]
+      },
+      {
+        "id": 14,
+        "task": "Admin Authentication Test",
+        "description": "Verify admin login unchanged",
+        "acceptanceCriteria": [
+          "Visit /admin redirects to /login",
+          "Login with admin credentials",
+          "Dashboard loads correctly",
+          "Can view guest bookings",
+          "Approve/reject works",
+          "Logout works"
+        ]
+      },
+      {
+        "id": 15,
+        "task": "Data Persistence Test",
+        "description": "Verify guest data persists during session",
+        "acceptanceCriteria": [
+          "Fill form partially",
+          "Refresh page",
+          "Data restored",
+          "Complete booking",
+          "Data cleared"
+        ]
+      },
+      {
+        "id": 16,
+        "task": "Form Validation Test",
+        "description": "Test all validation rules",
+        "acceptanceCriteria": [
+          "Empty form blocked",
+          "Invalid registration number blocked",
+          "Invalid email blocked",
+          "Invalid phone blocked",
+          "Invalid semester blocked",
+          "Valid data passes"
+        ]
+      },
+      {
+        "id": 17,
+        "task": "Edge Cases Test",
+        "description": "Test boundary conditions",
+        "acceptanceCriteria": [
+          "Refresh during booking",
+          "Navigate away and return",
+          "Enter invalid data",
+          "Network error handling",
+          "Duplicate booking"
+        ]
+      }
+    ],
+    "status": "pending",
+    "completion": "0%"
+  },
+  "bugFixingPhase": {
+    "name": "Bug Fixes & Refinements",
+    "estimatedHours": 6,
+    "status": "pending",
+    "completion": "0%",
+    "process": [
+      "Identify issues from testing",
+      "Prioritize by severity",
+      "Fix critical issues first",
+      "Retest fixed issues",
+      "Document any workarounds"
+    ]
+  },
+  "summary": {
+    "totalTasks": 17,
+    "completedTasks": 0,
+    "pendingTasks": 17,
+    "totalEstimatedHours": 45,
+    "completedHours": 0,
+    "progressPercentage": 0,
+    "criticalPath": [
+      "1 → 2 → 3 → 5 → 6 → 7 → 8 → 9 → 13"
+    ],
+    "parallelTasks": [
+      "1 and 2 can start together",
+      "4 can start after 3",
+      "8 and 9 can start after 7",
+      "10 can start after 8",
+      "11 can start after 5",
+      "12 can start after 7"
+    ]
+  },
+  "milestones": {
+    "milestone1": {
+      "name": "Guest Form Working",
+      "phase": 2,
+      "taskIds": [1, 2, 3],
+      "description": "GuestForm displays and collects data with validation",
+      "estimatedDate": "Day 2"
+    },
+    "milestone2": {
+      "name": "Guest Booking Flow",
+      "phase": 5,
+      "taskIds": [5, 6, 7, 8, 9],
+      "description": "Guest can complete full booking flow",
+      "estimatedDate": "Day 4"
+    },
+    "milestone3": {
+      "name": "System Complete",
+      "phase": 8,
+      "taskIds": [10, 11, 12],
+      "description": "All changes implemented and styled",
+      "estimatedDate": "Day 5"
+    },
+    "milestone4": {
+      "name": "Testing Complete",
+      "phase": "Testing",
+      "taskIds": [13, 14, 15, 16, 17],
+      "description": "All tests passing, system ready",
+      "estimatedDate": "Day 7"
+    }
+  },
+  "riskFactors": {
+    "high": [
+      "Breaking admin authentication",
+      "Backend API changes needed for guest bookings"
+    ],
+    "medium": [
+      "Form validation complexity",
+      "Data persistence edge cases"
+    ],
+    "low": [
+      "Styling inconsistencies",
+      "Minor UX improvements"
+    ]
+  },
+  "successCriteria": [
+    "Guest booking flow works end-to-end",
+    "Admin authentication unchanged",
+    "All form validations pass",
+    "Guest data persists during session",
+    "No breaking changes to existing functionality",
+    "TypeScript compiles without errors",
+    "All tests pass",
+    "Code follows existing patterns"
+  ],
+  "tracking": {
+    "updateFrequency": "After each task completion",
+    "reportFormat": "JSON progress update",
+    "stakeholderUpdates": "After each phase completion",
+    "escalationTriggers": [
+      "Tasks delayed >1 day",
+      "Critical bugs found",
+      "Scope creep identified"
+    ]
+  }
+}

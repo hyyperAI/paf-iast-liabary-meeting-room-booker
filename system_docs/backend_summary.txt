@@ -1,0 +1,74 @@
+Backend Architecture Summary
+
+  Tech Stack
+
+  - Runtime: Node.js with Express.js
+  - Language: TypeScript
+  - Database: SQLite with Prisma ORM
+  - Auth: JWT (jsonwebtoken) + bcryptjs
+  - Validation: Zod
+
+  Project Structure
+
+  backend/
+  ├── src/
+  │   ├── app.ts              # Express app configuration
+  │   ├── server.ts           # Server entry point (port 3001)
+  │   ├── config/
+  │   │   └── database.ts     # Prisma client instance
+  │   ├── controllers/        # Business logic
+  │   │   ├── authController.ts
+  │   │   ├── bookingController.ts
+  │   │   ├── roomController.ts
+  │   │   ├── studentController.ts
+  │   │   ├── adminController.ts
+  │   │   └── queueController.ts
+  │   ├── routes/             # API endpoints
+  │   │   ├── auth.ts, bookings.ts, rooms.ts
+  │   │   ├── students.ts, admin.ts, queue.ts
+  │   ├── middleware/
+  │   │   ├── auth.ts         # JWT authentication
+  │   │   ├── roles.ts        # Role-based authorization
+  │   │   ├── validate.ts     # Zod schema validation
+  │   │   └── errorHandler.ts # Global error handler
+  │   ├── schemas/            # Zod validation schemas
+  │   └── utils/
+  │       ├── jwt.ts, errors.ts
+  │       ├── dateHelpers.ts, businessRules.ts
+  └── prisma/
+      └── schema.prisma       # Database models
+
+  Database Models
+
+  | Model   | Purpose                                                     |
+  |---------|-------------------------------------------------------------|
+  | Room    | Library rooms with date, timeSlot, status, queue management |
+  | Student | Users with registrationNo, role (STUDENT/ADMIN)             |
+  | Booking | Room reservations with approval workflow                    |
+  | Member  | Group members for bookings                                  |
+
+  API Endpoints
+
+  | Route            | Methods                                         | Description        |
+  |------------------|-------------------------------------------------|--------------------|
+  | /api/v1/auth     | POST /login, /register, /admin/login            | Authentication     |
+  | /api/v1/rooms    | GET /, /:id, /:id/availability                  | Room management    |
+  | /api/v1/bookings | GET, POST, PUT, DELETE                          | Booking CRUD       |
+  | /api/v1/admin    | PUT /bookings/:id/approve, /bookings/:id/reject | Admin actions      |
+  | /api/v1/students | GET /, /:id, /:id/members                       | Student management |
+  | /api/v1/queue    | GET /:roomId/:date/:timeSlot                    | Queue status       |
+
+  Key Business Rules
+
+  - Booking restrictions: No past dates, no weekends, only next 3 working days
+  - Queue system: Max 5 in queue, position-based ordering
+  - Registration format: XXXX-XX-XXX (e.g., 2024-CS-001)
+  - Phone format: +92XXXXXXXXXX
+
+  System Docs (Flow Paths)
+
+  1. Flow Path 01: Deep codebase analysis methodology
+  2. Flow Path 02: Error diagnosis & fix workflow
+  3. Flow Path 03: Current functionality analysis with feature finding
+
+  Note: Authentication middleware is currently commented out on most routes (testing mode).

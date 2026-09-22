@@ -1,0 +1,542 @@
+{
+  "structureName": "student_auth_removal",
+  "description": "Architecture, file changes, and data flow for student authentication removal",
+  "architecture": {
+    "overview": "Guest-first architecture with optional authentication for admins and legacy students",
+    "patterns": [
+      "Context API for state management",
+      "Compound component pattern for GuestForm",
+      "Higher-order components for route protection",
+      "Strategy pattern for data source (guest vs auth)"
+    ],
+    "layers": {
+      "presentation": [
+        "GuestForm component",
+        "StudentDashboard (updated)",
+        "BookingModal (updated)",
+        "LoginPage (simplified)"
+      ],
+      "state": [
+        "AuthContext (enhanced)",
+        "GuestContext (new)",
+        "QueryProvider (unchanged)"
+      ],
+      "data": [
+        "api.ts (updated)",
+        "types/api.ts (updated)"
+      ],
+      "routing": [
+        "App.tsx (updated routes)",
+        "ProtectedRoute (enhanced)",
+        "AdminRoute (unchanged)"
+      ]
+    }
+  },
+  "fileChanges": {
+    "created": [
+      {
+        "file": "src/contexts/GuestContext.tsx",
+        "type": "new",
+        "size": "~150 lines",
+        "purpose": "Manage guest student data without authentication",
+        "dependencies": ["React", "localStorage"],
+        "exports": ["GuestContext", "useGuest", "GuestStudent type"]
+      },
+      {
+        "file": "src/components/GuestForm.tsx",
+        "type": "new",
+        "size": "~200 lines",
+        "purpose": "Collect and validate student details from guests",
+        "dependencies": ["react-hook-form", "zod", "Card", "Button", "Input"],
+        "exports": ["GuestForm", "guestFormSchema"]
+      }
+    ],
+    "modified": [
+      {
+        "file": "src/contexts/AuthContext.tsx",
+        "changes": [
+          "Add userType: 'GUEST' | 'STUDENT' | 'ADMIN'",
+          "Add isGuest: boolean",
+          "Add setGuestMode() method",
+          "Modify login() signature",
+          "Modify logout() to clear guest data"
+        ],
+        "linesChanged": "~30",
+        "backwardCompatible": true
+      },
+      {
+        "file": "src/App.tsx",
+        "changes": [
+          "Add /book route (no auth)",
+          "Update /admin route",
+          "Update /login route",
+          "Update default redirect"
+        ],
+        "linesChanged": "~15",
+        "backwardCompatible": true
+      },
+      {
+        "file": "src/pages/StudentDashboard.tsx",
+        "changes": [
+          "Remove ProtectedRoute wrapper",
+          "Import GuestContext",
+          "Check guestData existence",
+          "Conditional rendering: GuestForm or booking interface",
+          "Update header for guest mode",
+          "Hide My Bookings tab for guests"
+        ],
+        "linesChanged": "~50",
+        "backwardCompatible": true
+      },
+      {
+        "file": "src/components/BookingModal.tsx",
+        "changes": [
+          "Import GuestContext",
+          "Determine data source (guest vs auth)",
+          "Pre-fill form from guest data",
+          "Update submission payload",
+          "Clear guest data after success"
+        ],
+        "linesChanged": "~40",
+        "backwardCompatible": true
+      },
+      {
+        "file": "src/lib/api.ts",
+        "changes": [
+          "Update bookings.create() type",
+          "Support guest data in submission",
+          "Determine data source dynamically"
+        ],
+        "linesChanged": "~20",
+        "backwardCompatible": true
+      },
+      {
+        "file": "src/types/api.ts",
+        "changes": [
+          "Add GuestStudent interface",
+          "Update Booking interface",
+          "Make studentId optional in Booking",
+          "Add registrationNo to Booking"
+        ],
+        "linesChanged": "~25",
+        "backwardCompatible": true
+      },
+      {
+        "file": "src/pages/LoginPage.tsx",
+        "changes": [
+          "Remove student/admin toggle",
+          "Remove student login logic",
+          "Remove student registration link",
+          "Update title and helper text",
+          "Keep admin authentication"
+        ],
+        "linesChanged": "~40",
+        "backwardCompatible": true
+      },
+      {
+        "file": "src/components/ProtectedRoute.tsx",
+        "changes": [
+          "Add guest mode check",
+          "Allow guest access",
+          "Update redirect logic"
+        ],
+        "linesChanged": "~15",
+        "backwardCompatible": true
+      },
+      {
+        "file": "src/hooks/useAuthErrorHandler.ts",
+        "changes": [
+          "Add userType check",
+          "Don't handle errors for guests"
+        ],
+        "linesChanged": "~10",
+        "backwardCompatible": true
+      },
+      {
+        "file": "src/index.css",
+        "changes": [
+          "Add .guest-badge styles",
+          "Add .guest-form styles",
+          "Add .guest-header styles"
+        ],
+        "linesChanged": "~15",
+        "backwardCompatible": true
+      }
+    ],
+    "unchanged": [
+      "src/pages/AdminDashboard.tsx",
+      "src/components/AdminRoute.tsx",
+      "src/components/Calendar.tsx",
+      "src/components/TimeSlotGrid.tsx",
+      "src/components/ui/Button.tsx",
+      "src/components/ui/Input.tsx",
+      "src/components/ui/Card.tsx",
+      "src/components/ui/Dialog.tsx",
+      "src/components/ui/Tabs.tsx",
+      "src/components/Skeleton.tsx",
+      "src/pages/UnauthorizedPage.tsx",
+      "src/pages/TestBypassPage.tsx",
+      "src/providers/QueryProvider.tsx",
+      "src/components/ErrorBoundary.tsx",
+      "package.json",
+      "vite.config.ts",
+      "tailwind.config.js"
+    ]
+  },
+  "dataFlow": {
+    "guestBookingFlow": {
+      "step1": {
+        "action": "User visits /book",
+        "component": "StudentDashboard",
+        "state": "Check GuestContext",
+        "decision": "guestData exists?",
+        "ifTrue": "Show booking interface",
+        "ifFalse": "Show GuestForm"
+      },
+      "step2": {
+        "action": "User fills GuestForm",
+        "component": "GuestForm",
+        "state": "Update GuestContext",
+        "persistence": "localStorage (guestStudentData)",
+        "validation": "Real-time with zod"
+      },
+      "step3": {
+        "action": "User submits form",
+        "component": "GuestForm",
+        "state": "setGuestStudent()",
+        "transition": "Navigate to booking interface"
+      },
+      "step4": {
+        "action": "User selects time slot",
+        "component": "TimeSlotGrid",
+        "state": "selectedTimeSlot state",
+        "trigger": "Open BookingModal"
+      },
+      "step5": {
+        "action": "BookingModal opens",
+        "component": "BookingModal",
+        "dataSource": "GuestContext (guestData)",
+        "prefill": "All fields from guest data"
+      },
+      "step6": {
+        "action": "User submits booking",
+        "component": "BookingModal",
+        "apiCall": "bookings.create()",
+        "payload": {
+          "roomId": "selected room",
+          "registrationNo": "guestData.registrationNo",
+          "applicantName": "guestData.name",
+          "applicantPhone": "guestData.phoneNumber",
+          "applicantEmail": "guestData.email",
+          "applicantSemester": "guestData.semester",
+          "groupMemberCount": "from form",
+          "members": "from form (optional)"
+        }
+      },
+      "step7": {
+        "action": "Booking successful",
+        "component": "BookingModal",
+        "state": "clearGuestStudent()",
+        "ui": "Success toast",
+        "transition": "Return to booking interface"
+      }
+    },
+    "authenticatedStudentFlow": {
+      "unchanged": true,
+      "note": "Existing students can still login and use system as before"
+    },
+    "adminFlow": {
+      "unchanged": true,
+      "steps": [
+        "User visits /admin",
+        "ProtectedRoute checks authentication",
+        "Redirect to /login if not authenticated",
+        "User enters admin credentials",
+        "AdminDashboard loads",
+        "Admin can view all bookings (guest + authenticated)"
+      ]
+    }
+  },
+  "stateManagement": {
+    "guestData": {
+      "storage": "GuestContext + localStorage",
+      "structure": {
+        "registrationNo": "string",
+        "name": "string",
+        "phoneNumber": "string",
+        "email": "string",
+        "semester": "string"
+      },
+      "lifecycle": {
+        "created": "When user fills GuestForm",
+        "persisted": "localStorage with key 'guestStudentData'",
+        "retrieved": "On component mount",
+        "cleared": "After successful booking or logout",
+        "updated": "On form changes (debounced)"
+      }
+    },
+    "userType": {
+      "storage": "AuthContext",
+      "values": ["GUEST", "STUDENT", "ADMIN"],
+      "determination": {
+        "GUEST": "When guestData is set",
+        "STUDENT": "When authenticated student logs in",
+        "ADMIN": "When admin logs in"
+      }
+    },
+    "routing": {
+      "guestRoutes": ["/book"],
+      "authRequiredRoutes": ["/admin"],
+      "publicRoutes": ["/login", "/unauthorized", "/test-bypass"]
+    }
+  },
+  "componentHierarchy": {
+    "App": {
+      "children": [
+        "AuthProvider",
+        "QueryProvider",
+        "Router",
+        "Routes"
+      ],
+      "responsibilities": [
+        "Route configuration",
+        "Provider composition",
+        "Global error boundary"
+      ]
+    },
+    "AuthProvider": {
+      "children": ["StudentDashboard or AdminDashboard"],
+      "provides": ["user", "token", "userType", "login", "logout", "isGuest", "isAdmin"],
+      "responsibilities": [
+        "Authentication state",
+        "Guest mode management",
+        "Token expiration"
+      ]
+    },
+    "StudentDashboard": {
+      "children": [
+        "Conditional: GuestForm OR BookingInterface",
+        "BookingInterface: Calendar + TimeSlotGrid"
+      ],
+      "responsibilities": [
+        "Show appropriate UI based on guestData",
+        "Handle guest mode transitions",
+        "Coordinate booking flow"
+      ],
+      "states": [
+        "guestNoData",
+        "guestHasData",
+        "authenticatedStudent"
+      ]
+    },
+    "GuestForm": {
+      "children": ["Form fields (5)", "Submit button"],
+      "responsibilities": [
+        "Collect guest student details",
+        "Validate input data",
+        "Persist to localStorage",
+        "Submit to GuestContext"
+      ],
+      "dependencies": [
+        "react-hook-form",
+        "zod",
+        "localStorage API"
+      ]
+    },
+    "BookingModal": {
+      "children": ["Booking details", "Group members form"],
+      "responsibilities": [
+        "Pre-fill from data source (guest or auth)",
+        "Handle booking submission",
+        "Show success/error states",
+        "Clear guest data on success"
+      ],
+      "dataSources": ["GuestContext", "AuthContext"]
+    }
+  },
+  "apiChanges": {
+    "endpoints": {
+      "bookings.create": {
+        "current": {
+          "requires": ["roomId", "studentId (from auth)"],
+          "payload": "Uses authenticated user data"
+        },
+        "updated": {
+          "requires": ["roomId"],
+          "optional": ["studentId"],
+          "newRequired": [
+            "registrationNo",
+            "applicantName",
+            "applicantPhone",
+            "applicantEmail",
+            "applicantSemester"
+          ],
+          "payload": "Guest data OR authenticated user data"
+        }
+      },
+      "otherEndpoints": {
+        "status": "No changes required",
+        "note": "Admin endpoints unchanged, read-only endpoints work with guest data"
+      }
+    },
+    "dataFormats": {
+      "bookingSubmission": {
+        "guest": {
+          "roomId": "string",
+          "registrationNo": "string",
+          "applicantName": "string",
+          "applicantPhone": "string",
+          "applicantEmail": "string",
+          "applicantSemester": "string",
+          "groupMemberCount": "number",
+          "members": "array (optional)"
+        },
+        "authenticated": {
+          "roomId": "string",
+          "studentId": "string",
+          "registrationNo": "string (from user)",
+          "applicantName": "string (from user or form)",
+          "applicantPhone": "string (from user or form)",
+          "applicantEmail": "string (from user or form)",
+          "applicantSemester": "string (from user or form)",
+          "groupMemberCount": "number",
+          "members": "array (optional)"
+        }
+      }
+    }
+  },
+  "securityConsiderations": {
+    "clientSide": [
+      {
+        "concern": "Data validation",
+        "mitigation": "Zod schemas for all form fields",
+        "implementation": "Real-time validation on change and submit"
+      },
+      {
+        "concern": "XSS prevention",
+        "mitigation": "React's built-in escaping + validation",
+        "implementation": "No innerHTML, use textContent"
+      },
+      {
+        "concern": "Data persistence",
+        "mitigation": "Only non-sensitive data in localStorage",
+        "implementation": "Clear after successful booking"
+      }
+    ],
+    "serverSide": [
+      {
+        "concern": "Data integrity",
+        "mitigation": "Server-side validation required",
+        "implementation": "Backend must validate all guest data"
+      },
+      {
+        "concern": "Duplicate bookings",
+        "mitigation": "Registration number + time slot unique constraint",
+        "implementation": "Backend database constraint"
+      }
+    ],
+    "authentication": [
+      {
+        "concern": "Admin security",
+        "mitigation": "No changes to admin auth",
+        "implementation": "Preserve existing JWT + role-based access"
+      },
+      {
+        "concern": "Student impersonation",
+        "mitigation": "Registration number format validation",
+        "implementation": "Strict pattern matching on client and server"
+      }
+    ]
+  },
+  "performance": {
+    "optimizations": [
+      {
+        "area": "Form validation",
+        "technique": "Debounced validation",
+        "implementation": "500ms debounce on onChange"
+      },
+      {
+        "area": "localStorage",
+        "technique": "Efficient serialization",
+        "implementation": "JSON.parse/stringify only when needed"
+      },
+      {
+        "area": "Component rendering",
+        "technique": "Conditional rendering",
+        "implementation": "Only render GuestForm when no data"
+      },
+      {
+        "area": "API calls",
+        "technique": "Optimistic updates",
+        "implementation": "React Query for caching"
+      }
+    ],
+    "metrics": {
+      "formCompletion": "Target: >80%",
+      "bookingSuccess": "Target: >95%",
+      "validationAccuracy": "Target: 100%",
+      "pageLoadTime": "Maintain current performance"
+    }
+  },
+  "accessibility": {
+    "requirements": [
+      {
+        "feature": "Form fields",
+        "implementation": "ARIA labels, required indicators, error associations"
+      },
+      {
+        "feature": "Validation errors",
+        "implementation": "aria-live polite announcements"
+      },
+      {
+        "feature": "Keyboard navigation",
+        "implementation": "Tab order, Enter to submit, Escape to cancel"
+      },
+      {
+        "feature": "Screen readers",
+        "implementation": "Semantic HTML, role attributes"
+      },
+      {
+        "feature": "Focus management",
+        "implementation": "Focus trap in modal, restore focus on close"
+      }
+    ],
+    "wcag": "WCAG 2.1 AA compliance maintained"
+  },
+  "browserCompatibility": {
+    "supported": [
+      "Chrome 90+",
+      "Firefox 88+",
+      "Safari 14+",
+      "Edge 90+"
+    ],
+    "features": [
+      "localStorage API",
+      "ES2020+ JavaScript",
+      "CSS Grid",
+      "Flexbox"
+    ],
+    "fallbacks": [
+      {
+        "feature": "localStorage disabled",
+        "fallback": "Use in-memory store, warn user"
+      }
+    ]
+  },
+  "monitoring": {
+    "events": [
+      "GuestForm start",
+      "GuestForm completion",
+      "Booking submission",
+      "Booking success",
+      "Booking failure",
+      "Validation errors"
+    ],
+    "analytics": [
+      "Guest booking rate",
+      "Form abandonment rate",
+      "Most common validation errors",
+      "Booking completion rate"
+    ]
+  }
+}

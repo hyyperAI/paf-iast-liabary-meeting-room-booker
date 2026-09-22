@@ -1,0 +1,293 @@
+🎯 Repeatable Template for Future Features
+
+  Process Flow
+
+  Documentation Research
+      ↓
+  Structured JSON Planning
+      ↓
+  Backend-First Implementation
+      ↓
+  UI Specification Review ← CRITICAL STEP - USER FEEDBACK LOOP
+      ↓
+  Question-Driven Clarification ← ENSURE COMPLETE UNDERSTANDING
+      ↓
+  Frontend Implementation
+      ↓
+  End-to-End Testing
+
+  Each Step Produces:
+
+1. Feature Identification → List of features to analyze
+2. **Feature Finding** → Found features document with:
+   - Search patterns used
+   - Files containing feature code
+   - Related components and utilities
+   - Database/API integrations
+3. Behavior Mapping → 3 mapping files:
+   - `user_flow.json` - Complete user journey
+   - `code_flow.json` - Code execution path
+   - `state_changes.json` - State mutations over time
+4. Component Analysis → Component documentation:
+   - Props and their sources
+   - State management
+   - Lifecycle hooks
+   - Side effects
+5. Documentation → Complete feature documentation
+6. Question-Driven Clarification → Verified understanding
+7. Change Impact Assessment → Risk analysis
+8. Validation Testing → Tested behavior matches docs
+
+### Flow-Path 3: Current Functionality Analysis
+**When to use:** Understanding how existing features work, before making changes, documenting behavior
+
+### Process Flow
+
+**Feature Identification**
+  ↓
+  **Feature Finding** ← DISCOVER EXISTING FEATURES IN CODEBASE
+  ↓
+  Behavior Mapping (User flow + Code flow + State changes)
+  ↓
+  Component Analysis (Props, state, lifecycle, side effects)
+  ↓
+  Documentation ← CRITICAL STEP - MAP COMPLETE USER JOURNEY
+  ↓
+  Question-Driven Clarification ← VERIFY UNDERSTANDING
+  ↓
+  Change Impact Assessment ← ANTICIPATE EFFECTS
+  ↓
+  Validation Testing
+
+### Critical Success Factors:
+
+- ✅ Map complete user flow (start to finish)
+- ✅ Trace data from UI to backend and back
+- ✅ Document all state changes and triggers
+- ✅ Identify side effects and dependencies
+- ✅ Note any async operations (promises, callbacks)
+- ✅ Understand conditional logic and branching
+- ✅ Verify with actual code reading
+- ✅ Test the documented behavior
+
+### Feature Finding - Discover Existing Features
+
+**What is Feature Finding?**
+The process of discovering and analyzing features that already exist in the codebase but may not be documented or obvious. This is like detective work - finding hidden functionality by searching code patterns.
+
+**When to Use Feature Finding:**
+- User mentions a feature you can't find in UI
+- You see commented code that suggests functionality
+- You need to understand existing systems before adding new features
+- Debugging: feature partially works, need to find all parts
+- Refactoring: need to understand what depends on what
+
+**How to Find Features:**
+
+#### Step 1: Search by Keywords
+Use Grep to find relevant code:
+```bash
+# Search for status-related code
+Grep pattern="status" output_mode="files_with_matches"
+
+# Search for completion logic
+Grep pattern="isComplete|complete" output_mode="files_with_matches"
+
+# Search for locking mechanisms
+Grep pattern="isLocked|locked|unlock" output_mode="files_with_matches"
+
+# Search for specific UI elements
+Grep pattern="retroactive|edit.*week" output_mode="files_with_matches"
+```
+
+#### Step 2: Search by File Patterns
+Use Glob to find relevant files:
+```bash
+# Find all component files
+Glob pattern="**/*Component*.jsx"
+
+# Find all utility files
+Glob pattern="**/utils/*.js"
+
+# Find all page files
+Glob pattern="**/pages/*.jsx"
+```
+
+#### Step 3: Read and Analyze
+Once you find relevant files:
+- Read the entire file to understand context
+- Look for related functions and components
+- Check imports/exports to find dependencies
+- Look for comments mentioning other parts of the feature
+
+#### Step 4: Trace the Feature
+Follow the breadcrumb trail:
+1. Find UI component using the feature
+2. Find handler functions (onClick, onChange, etc.)
+3. Find state management (useState, useEffect)
+4. Find API calls (if any)
+5. Find database queries (if any)
+6. Find utilities and helpers
+
+**What to Look For:**
+
+1. **Keywords in Code:**
+   - Feature names: `retroactive`, `unlock`, `complete`
+   - Status indicators: `status`, `isComplete`, `isLocked`
+   - UI indicators: `borderColor`, `badge`, `icon`
+   - Business logic: `calculateWeekStatus`, `handleCompleteDay`
+
+2. **Commented Code:**
+   - Look for `// TODO`, `// FIXME`, `// NOTE`
+   - Look for disabled features: `// DISABLED:`, `// TEMPORARILY DISABLED:`
+   - Look for explanatory comments about features
+
+3. **Configuration:**
+   - Look for feature flags
+   - Look for constants and enums
+   - Look for API endpoints
+
+4. **Database Schema:**
+   - Look for fields like `status`, `isLocked`, `isComplete`
+   - Look for tables related to the feature
+
+5. **UI Patterns:**
+   - Repeated component structures
+   - Similar styling patterns
+   - Common state management patterns
+
+**Documentation Template for Found Features:**
+
+Create a `found_feature_analysis.md` file:
+```markdown
+## Feature: [Feature Name]
+
+### Search Terms Used:
+- `search term 1`
+- `search term 2`
+
+### Files Found:
+1. **Main Component**: `path/to/component.jsx`
+   - Purpose: What it does
+   - Key functions: function1, function2
+
+2. **Utility Functions**: `path/to/utils.js`
+   - Purpose: Helper functions
+   - Key exports: export1, export2
+
+3. **API Integration**: `path/to/api.js`
+   - Endpoints: endpoint1, endpoint2
+   - Data flow: How data moves
+
+### Feature Behavior:
+- User flow: Step 1 → Step 2 → Step 3
+- State changes: What state updates when
+- Side effects: What happens as result
+
+### Dependencies:
+- Other components that use this feature
+- Utils or helpers it depends on
+- API endpoints it calls
+
+### Notes:
+- Any TODOs or incomplete parts
+- Known issues or bugs
+- Related features
+```
+
+**Example from This Session:**
+
+When looking for "Red Line Understate Weeks" feature:
+1. **Grep search**: `pattern="status|uncompleted|calculateWeekStatus"`
+2. **Files found**:
+   - `weekUtils.js` - Status calculation logic
+   - `WeekCard.jsx` - Visual display with border colors
+   - `WeekOverview.jsx` - Day grid with retroactive mode
+3. **Key discovery**: `isRetroactiveMode` prop and `updateWeekStatusInStorage` function
+4. **Full picture**: Automatic status transitions based on dates, stored in localStorage
+
+**Example from This Session:**
+
+When looking for Day Lock/Unlock system:
+1. **Grep search**: `pattern="isLocked|locked|unlock"`
+2. **Files found**:
+   - `App.jsx` - Day completion and unlocking logic
+   - `WeekOverview.jsx` - Visual lock indicators
+   - `DayView.jsx` - Day editing interface
+3. **Key discovery**: `handleCompleteDay` unlocks next day, `handleForceUnlockDay` manual unlock
+4. **Full picture**: Progressive unlocking with visual indicators and manual override
+
+### Tools to Use:
+- **Read**: Examine component code and logic
+- **Grep**: Find usage patterns and references
+- **Glob**: Locate related files
+- **Bash**: Run tests to verify behavior
+
+### What to Document:
+1. **User Flow**: What user does step-by-step
+2. **Code Flow**: How code executes in response
+3. **State Changes**: When and how state updates
+4. **API Calls**: What backend requests are made
+5. **Component Props**: Where props come from
+6. **Lifecycle**: Mount/update/unmount behavior
+7. **Side Effects**: useEffect, timers, subscriptions
+8. **Conditional Logic**: If/else branches and conditions
+
+### Mapping Files to Create:
+
+#### user_flow.json
+```json
+{
+  "feature": "Feature name",
+  "steps": [
+    {
+      "step": 1,
+      "action": "User clicks button",
+      "expected_result": "Modal opens"
+    }
+  ]
+}
+```
+
+#### code_flow.json
+```json
+{
+  "feature": "Feature name",
+  "execution_path": [
+    {
+      "component": "ComponentName",
+      "function": "handlerFunction",
+      "action": "Updates state"
+    }
+  ]
+}
+```
+
+#### state_changes.json
+```json
+{
+  "feature": "Feature name",
+  "state_updates": [
+    {
+      "state_variable": "someState",
+      "trigger": "Button click",
+      "new_value": "updated value"
+    }
+  ]
+}
+```
+
+### Template for Next Analysis:
+
+1. Identify feature to analyze
+2. **Feature Finding**: Search codebase to discover existing implementation
+   - Use Grep to find relevant keywords
+   - Use Glob to find related files
+   - Read and trace the feature
+   - Document findings
+3. Map user flow + code flow + state changes
+4. Analyze component interactions
+5. Document complete behavior
+6. Verify understanding with questions
+7. Assess change impact
+8. Validate with testing

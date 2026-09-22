@@ -1,0 +1,455 @@
+# Comprehensive Prompt for Future Self - Adaptive Task Analysis & Prompt Generation
+
+## Purpose
+This prompt enables efficient task-specific analysis and prompt generation for various development scenarios.
+
+---
+
+## Task Classification & Approach
+
+### Simple Tasks (Single Task Type, ≤3 sections)
+When user requests one specific analysis type, create a focused prompt using that task's methodology.
+
+### Complex Tasks (Multiple Task Types, >3 sections)
+When user needs comprehensive analysis across multiple dimensions, create an adaptive prompt with multiple task sections.
+
+---
+
+## Task Type Reference
+
+### TASK 1: Code Quality Assessment
+**When**: Code review, quality audits, technical debt assessment
+**Output**: Quality metrics, issue categorization, security review
+
+#### Process Flow (Graph Form)
+```
+Code Review → Metric Collection → Issue Categorization → Security Review → Quality Score
+     ↓              ↓                    ↓                 ↓             ↓
+  Analyze     Quantify          Classify Severity    Security Check    Report
+```
+
+#### Process Flow (Details)
+1. **Initial Analysis**: Review code structure, identify patterns, count LOC
+2. **Metric Collection**: Calculate complexity, identify technical debt, measure changes
+3. **Issue Identification**: Find bugs, security issues, performance problems
+4. **Severity Classification**: Categorize as Critical/Important/Minor
+5. **Security Review**: Check for vulnerabilities, validate patterns
+6. **Quality Scoring**: Assign numerical score with improvement suggestions
+
+#### Success Factors
+- Complete metric coverage (lines, complexity, technical debt)
+- Accurate severity classification
+- Actionable recommendations
+- Security vulnerability identification
+- Performance impact assessment
+
+#### Before/After Behavior with Scenarios
+**Scenario: Memory Leak Detection**
+- **BEFORE**: `document.body.appendChild(link)` - object URLs never released
+- **AFTER**: Added `URL.revokeObjectURL(url)` after link removal
+- **IMPACT**: Memory usage reduced from 500MB to 50MB, prevented browser crashes
+
+---
+
+### TASK 2: UI/UX Design Problem Analysis
+**When**: UI/UX issues, user interaction problems, interface optimization
+**Output**: Navigation breakdown, performance impact, user experience assessment
+
+#### Process Flow (Graph Form)
+```
+User Action → Component Load → Data Fetch → State Update → Render
+     ↓            ↓              ↓            ↓           ↓
+  Click/Tap    Mount Effect     API Call     Set State   UI Update
+```
+
+#### Process Flow (Details)
+1. **Action Identification**: Map user actions (click, scroll, navigation)
+2. **Component Analysis**: Review component lifecycle, state management
+3. **Data Flow Tracking**: Trace API calls, data transformation, state updates
+4. **Performance Measurement**: Count API calls, measure load times, assess data transfer
+5. **UX Impact Assessment**: Evaluate user friction, identify broken flows
+6. **Optimization Recommendations**: Suggest caching, lazy loading, state optimization
+
+#### Success Factors
+- Complete navigation flow mapping
+- Accurate performance metrics (API calls, load times, data size)
+- Clear UX pain point identification
+- Actionable optimization suggestions
+- User impact quantification
+
+#### Before/After Behavior with Scenarios
+**Scenario: Day-to-Day Navigation Data Loss**
+- **BEFORE**: DayView clears all state on day change → 10-16 API calls per cycle → 1.7-3.4s load time
+- **AFTER**: Preserve day data in sessionStorage → 2-3 API calls per cycle → 0.3-0.5s load time
+- **IMPACT**: 85% performance improvement, zero data loss, seamless navigation
+
+---
+
+### TASK 3: Data Flow Problem Analysis & Planning
+**When**: Data flow problems, pipeline planning, consistency issues
+**Output**: Data loss scenarios, flow analysis, integrity assessment
+
+#### Process Flow (Graph Form)
+```
+Data Source → Transform → Validation → Storage → Retrieval → Display
+     ↓           ↓          ↓          ↓         ↓         ↓
+   Input     Process     Check      Database   Query    UI Render
+```
+
+#### Process Flow (Details)
+1. **Source Analysis**: Identify data origins (API, database, user input)
+2. **Transformation Tracking**: Map data processing steps, validation rules
+3. **Storage Pattern Review**: Analyze database operations, transactions, constraints
+4. **Retrieval Optimization**: Review query patterns, indexing, caching
+5. **Consistency Validation**: Check for race conditions, stale data, sync issues
+6. **Integrity Assessment**: Verify data accuracy, completeness, durability
+
+#### Success Factors
+- Complete data flow visualization
+- Identification of all data loss points
+- Clear consistency guarantees
+- Actionable integrity improvements
+- Performance optimization opportunities
+
+#### Before/After Behavior with Scenarios
+**Scenario: Profile Completion Data Loss**
+- **BEFORE**: User completes profile → stored in database → DayView clears UI state → data appears lost
+- **AFTER**: Complete profile → database + sessionStorage → DayView preserves state → data persists
+- **IMPACT**: 100% data persistence, user confidence restored, zero work loss
+
+---
+
+### TASK 4: Deep Code Analysis on Specific Problems
+**When**: Targeted debugging, problem isolation, issue investigation
+**Output**: Root cause analysis, impact assessment, solution options
+
+#### Process Flow (Graph Form)
+```
+Symptom → Investigation → Root Cause → Impact Analysis → Solution Design
+   ↓           ↓              ↓             ↓               ↓
+  Error    Trace Code    Find Source   Assess Damage   Implement Fix
+```
+
+#### Process Flow (Details)
+1. **Symptom Documentation**: Record error messages, reproduction steps, affected areas
+2. **Code Tracing**: Follow execution path, identify failing functions, locate error points
+3. **Root Cause Identification**: Pinpoint exact line/condition causing issue
+4. **Impact Assessment**: Determine scope, affected users, data corruption risk
+5. **Solution Design**: Develop fix, test scenarios, migration strategy
+6. **Verification Plan**: Create test cases, validation steps, rollback procedures
+
+#### Success Factors
+- Precise root cause identification
+- Accurate impact assessment
+- Clear solution approach
+- Comprehensive testing strategy
+- Minimal risk implementation
+
+#### Before/After Behavior with Scenarios
+**Scenario: Optional Chaining Bug**
+- **BEFORE**: `weekPlan.id` crashes when weekPlan undefined → API fails → counts reset to 0
+- **AFTER**: `weekPlan?.id` safely handles undefined → API succeeds → counts persist correctly
+- **IMPACT**: Eliminated crashes, fixed data loss, improved user experience
+
+---
+
+### TASK 5: Flow Chart/Diagram Creation
+**When**: Complex logic flows, process documentation, workflow visualization
+**Output**: Step-by-step flow diagram, success/failure points
+
+#### Process Flow (Graph Form)
+```
+Start → Decision Point → Process Step → Decision → End
+ ↓          ↓              ↓           ↓        ↓
+Init    Check Condition  Execute    Validate   Complete
+```
+
+#### Process Flow (Details)
+1. **Process Identification**: List all steps, decisions, branches
+2. **Flow Mapping**: Create sequential steps, identify parallel paths
+3. **Decision Point Analysis**: Mark all conditional logic, error handling
+4. **Success Path Definition**: Trace happy path, success conditions
+5. **Failure Path Mapping**: Identify error scenarios, exception handling
+6. **Visual Representation**: Create clear diagrams with labels, arrows, symbols
+
+#### Success Factors
+- Complete process coverage
+- Clear decision points
+- Accurate success/failure paths
+- Easy-to-understand visualization
+- Actionable insights
+
+#### Before/After Behavior with Scenarios
+**Scenario: Profile Completion Flow**
+- **BEFORE**: User clicks complete → API call → database update → UI reload (complex, unclear)
+- **AFTER**: Step 1: User clicks complete → Step 2: API validates → Step 3: DB updates → Step 4: UI animates → Complete
+- **IMPACT**: Clear 4-step process, easy debugging, simplified maintenance
+
+---
+
+### TASK 6: Logic Creation & Design
+**When**: Algorithm design, logic implementation, pattern creation
+**Output**: Logic validation, critical point identification, design patterns
+
+#### Process Flow (Graph Form)
+```
+Requirement → Logic Design → Validation → Optimization → Implementation
+     ↓            ↓            ↓            ↓             ↓
+  Define      Create Flow   Test Cases   Refine       Code Write
+```
+
+#### Process Flow (Details)
+1. **Requirement Analysis**: Understand business logic, edge cases, constraints
+2. **Logic Design**: Create algorithm, define data structures, plan flow
+3. **Validation Strategy**: Design test cases, edge scenarios, boundary conditions
+4. **Optimization**: Improve performance, reduce complexity, enhance clarity
+5. **Implementation Plan**: Map to code, define interfaces, plan integration
+6. **Verification**: Review logic, validate against requirements, check edge cases
+
+#### Success Factors
+- Correct algorithm implementation
+- Comprehensive edge case handling
+- Optimal performance characteristics
+- Clear, maintainable code
+- Thorough validation
+
+#### Before/After Behavior with Scenarios
+**Scenario: Queue Completion Logic**
+- **BEFORE**: Check status='pending' → return profiles → mark complete → reload (causes infinite loop risk)
+- **AFTER**: Check status='pending' → return profiles → mark complete → filter by status (prevents loops)
+- **IMPACT**: Eliminated infinite loop risk, improved reliability, cleaner logic
+
+---
+
+### TASK 7: Scenario Generation & Analysis
+**When**: Test scenario creation, edge case identification, use case analysis
+**Output**: Comparison matrix, scenario-based analysis, decision criteria
+
+#### Process Flow (Graph Form)
+```
+Input → Generate Scenarios → Analyze Impact → Compare Options → Decision
+ ↓           ↓                 ↓              ↓             ↓
+Problem    Create Tests      Evaluate      Matrix View   Select Best
+```
+
+#### Process Flow (Details)
+1. **Context Analysis**: Understand problem scope, constraints, goals
+2. **Scenario Generation**: Create test cases, edge scenarios, failure modes
+3. **Impact Analysis**: Evaluate each scenario's effects, risks, benefits
+4. **Comparison Matrix**: Create structured comparison with criteria weights
+5. **Decision Framework**: Define evaluation metrics, selection criteria
+6. **Recommendation**: Provide clear recommendation with rationale
+
+#### Success Factors
+- Comprehensive scenario coverage
+- Accurate impact assessment
+- Clear comparison criteria
+- Actionable recommendations
+- Risk mitigation strategies
+
+#### Before/After Behavior with Scenarios
+**Scenario: Caching Strategy Selection**
+- **BEFORE**: Query approach - simple but O(n) performance
+- **AFTER**: Denormalized approach - complex but O(1) performance
+- **DECISION**: Start with query (Phase 1), migrate to denormalized when scale requires (Phase 2)
+- **IMPACT**: Balanced complexity vs performance, progressive optimization
+
+---
+
+### TASK 8: Before/After Code Behavior Analysis
+**When**: Understanding code changes, behavior differences, impact analysis
+**Output**: Progressive optimization strategy, implementation phases, migration paths
+
+#### Process Flow (Graph Form)
+```
+Current State → Analyze Gap → Design Solution → Phase Implementation → Migrate
+      ↓             ↓           ↓                ↓                 ↓
+  Document      Find Issues    Plan          Progressive       Full Deploy
+```
+
+#### Process Flow (Details)
+1. **Current State Documentation**: Record existing behavior, limitations, issues
+2. **Gap Analysis**: Identify differences between current and desired state
+3. **Solution Design**: Create implementation plan, define success criteria
+4. **Phase Planning**: Break into manageable phases (Phase 1: simple, Phase 2: optimized)
+5. **Migration Strategy**: Plan data migration, compatibility, rollback
+6. **Validation**: Test each phase, verify improvements, measure impact
+
+#### Success Factors
+- Clear current state understanding
+- Well-defined target state
+- Phased implementation approach
+- Safe migration path
+- Measurable improvements
+
+#### Before/After Behavior with Scenarios
+**Scenario: Completion Tracking Optimization**
+- **BEFORE**: Frontend counts → weekPlan.id dependency → crashes on undefined
+- **AFTER**: Backend aggregation → auto-derive week_plan_id → zero crashes
+- **MIGRATION**: Phase 1: Add endpoint → Phase 2: Add triggers (when needed)
+- **IMPACT**: Zero data loss, improved performance, future-proof architecture
+
+---
+
+## Implementation Pattern
+
+### Step 1: Task Identification
+1. Read user's problem description
+2. Identify relevant task type(s)
+3. Count sections needed (≤3 = Simple, >3 = Complex)
+
+### Step 2: Template Assembly
+For each selected task type:
+1. Extract methodology pattern
+2. Fill placeholders with user's specific data
+3. Add hallucination prevention constraints
+4. Include verification checklist
+
+### Step 3: Adaptive Prompt Generation
+Combine selected templates into structured prompt:
+
+```
+# TASK ANALYSIS: [Problem Summary]
+
+## CONTEXT
+[User's problem description]
+[Relevant files/systems involved]
+
+## SELECTED TASK TYPES
+Using [Task 1], [Task 2], etc. based on requirements
+
+## ANALYSIS FRAMEWORK
+
+### [TASK 1 NAME]
+**Process Flow (Graph)**:
+[Short flow diagram]
+
+**Process Flow (Details)**:
+[Detailed step-by-step]
+
+**Success Factors**:
+[List key factors]
+
+**Before/After with Scenarios**:
+- **BEFORE**: [Current state]
+- **AFTER**: [Desired state]
+- **IMPACT**: [Measurable outcome]
+
+[Template content with placeholders filled]
+[Constraints specific to this task]
+[Verification checklist]
+
+## UNIVERSAL CONSTRAINTS
+⚠️ DO NOT MODIFY:
+- Any existing code outside explicit scope
+- Unrelated features or functionality
+- Database structure unless specified
+- API contracts or interfaces
+
+✅ MUST PRESERVE:
+- Existing patterns and conventions
+- Current functionality
+- Code style and formatting
+
+## OUTPUT REQUIREMENTS
+[Specific deliverables based on task types]
+
+## SUCCESS CRITERIA
+[Measurable outcomes]
+```
+
+---
+
+## Placeholder Reference
+
+Use these placeholders throughout templates:
+
+- `[PROBLEM]` - User's problem description
+- `[SYSTEM]` - System/application name
+- `[FILES]` - Relevant files/paths
+- `[SCENARIOS]` - Specific scenarios to analyze
+- `[METRICS]` - Current metrics if available
+- `[NAVIGATION_TYPES]` - User action types (navigation, tab switch, etc.)
+- `[DATA_TYPES]` - Types of data affected
+- `[ROOT_CAUSES]` - Identified or suspected causes
+- `[FLOWS]` - Processes to diagram
+- `[LOGIC_POINTS]` - Key logic concepts to analyze
+- `[SOLUTIONS]` - Options to compare
+- `[CHANGES]` - Code changes to analyze
+
+---
+
+## Hallucination Prevention Constraints
+
+**Include in EVERY task type**:
+
+1. **DO NOT assume** implementation details not provided by user
+2. **DO NOT modify** any code outside the explicit scope mentioned
+3. **ONLY analyze** the specific problem described, not related issues
+4. **VERIFY** each template section applies to the actual task
+5. **BASE all analysis** on user's provided context and file contents
+
+**Additional Constraints by Task Type**:
+
+- **TASK 1**: Only quantify metrics visible in code or specified by user
+- **TASK 2**: Only analyze navigation types explicitly mentioned
+- **TASK 3**: Only document data flows actually described
+- **TASK 4**: Only identify root causes with evidence
+- **TASK 5**: Only diagram flows that are clearly defined
+- **TASK 6**: Only create logic for requirements specified
+- **TASK 7**: Only generate scenarios based on given context
+- **TASK 8**: Only compare aspects explicitly mentioned
+
+---
+
+## Verification Checklist
+
+**Before Output**:
+- [ ] Selected task types match user's actual needs
+- [ ] All placeholders replaced with user's specific data
+- [ ] Process flow (graph) included and accurate
+- [ ] Process flow (details) comprehensive
+- [ ] Success factors clearly defined
+- [ ] Before/After scenarios provided with measurable impact
+- [ ] Constraints prevent hallucination
+- [ ] Verification checklists included
+- [ ] Output follows template structure
+- [ ] Scope limitations clearly stated
+
+**For Complex Tasks**:
+- [ ] Multiple task types logically combined
+- [ ] Sections clearly separated
+- [ ] Each task has its own constraints
+- [ ] Overall structure coherent
+
+---
+
+## Output Format
+
+When user provides this prompt + problem, respond with:
+
+1. **Task Analysis Summary** (3-4 sentences)
+2. **Selected Task Types** (list with rationale)
+3. **Generated Prompt File** (structured, ready to use)
+4. **Key Notes** (important considerations, constraints)
+
+The prompt file should be immediately usable without modification.
+
+---
+
+## Key Principles
+
+1. **Always identify task types first** before generating templates
+2. **Only activate relevant sections** based on user's actual needs
+3. **Include all 4 required headings** for each selected task type
+4. **Fill all placeholders** with user's specific context
+5. **Include verification checklists** for each task type
+6. **Follow the template structure exactly** for consistency
+7. **Be adaptive** - combine task types when needed
+8. **Generate complete prompt file** - ready for immediate use
+
+---
+
+**THIS IS PLANNING PHASE - NOT IMPLEMENTATION**
+
+When you receive this prompt with a problem, analyze it, select appropriate task types, and generate the complete prompt file following this structure exactly.

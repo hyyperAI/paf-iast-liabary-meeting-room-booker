@@ -1,0 +1,296 @@
+{
+  "phase": "backend_implementation",
+  "focus": "Backend-First Development",
+  "objective": "Setup complete backend infrastructure with Node.js, Express, SQLite, and Prisma ORM",
+  "environment_setup": {
+    "directory": "/backend",
+    "steps": [
+      {
+        "step": 1,
+        "action": "Initialize Node.js project",
+        "command": "npm init -y",
+        "description": "Create package.json with default settings"
+      },
+      {
+        "step": 2,
+        "action": "Install core dependencies",
+        "command": "npm install express cors dotenv",
+        "description": "Install Express framework, CORS, and environment variables"
+      },
+      {
+        "step": 3,
+        "action": "Install development dependencies",
+        "command": "npm install -D typescript @types/node @types/express ts-node nodemon",
+        "description": "Install TypeScript and development tools"
+      },
+      {
+        "step": 4,
+        "action": "Initialize TypeScript",
+        "command": "npx tsc --init",
+        "description": "Create tsconfig.json with ES2020 target"
+      },
+      {
+        "step": 5,
+        "action": "Install Prisma ORM",
+        "command": "npm install prisma @prisma/client",
+        "description": "Install Prisma ORM and client"
+      },
+      {
+        "step": 6,
+        "action": "Initialize Prisma",
+        "command": "npx prisma init",
+        "description": "Setup Prisma with SQLite database"
+      },
+      {
+        "step": 7,
+        "action": "Install additional dependencies",
+        "command": "npm install bcryptjs jsonwebtoken zod",
+        "description": "Install bcrypt for password hashing, JWT for auth, Zod for validation"
+      }
+    ]
+  },
+  "database_schema": {
+    "location": "/backend/prisma/schema.prisma",
+    "tables": [
+      {
+        "name": "Room",
+        "description": "Stores room booking slots with status and queue information",
+        "fields": {
+          "id": "String @id @default(cuid())",
+          "room_number": "Int (1 or 2)",
+          "date": "DateTime",
+          "time_slot": "String (e.g., '9:00-10:00')",
+          "status": "Enum (ACTIVE, PENDING, APPROVED)",
+          "queue_count": "Int @default(0)",
+          "max_queue": "Int @default(5)",
+          "createdAt": "DateTime @default(now())",
+          "updatedAt": "DateTime @updatedAt",
+          "bookings": "Booking[]"
+        },
+        "indexes": [
+          "unique_room_date_time: [room_number, date, time_slot]"
+        ]
+      },
+      {
+        "name": "Student",
+        "description": "Stores student information and booking records",
+        "fields": {
+          "id": "String @id @default(cuid())",
+          "registration_no": "String @unique",
+          "phone_number": "String",
+          "email": "String",
+          "semester": "String",
+          "password": "String (hashed)",
+          "role": "Enum (STUDENT, ADMIN)",
+          "createdAt": "DateTime @default(now())",
+          "updatedAt": "DateTime @updatedAt",
+          "bookings": "Booking[]"
+        }
+      },
+      {
+        "name": "Booking",
+        "description": "Stores individual booking requests with status",
+        "fields": {
+          "id": "String @id @default(cuid())",
+          "student_id": "String",
+          "room_id": "String",
+          "applicant_name": "String",
+          "applicant_phone": "String",
+          "applicant_email": "String",
+          "applicant_semester": "String",
+          "group_member_count": "Int",
+          "request_status": "Enum (PENDING, APPROVED, REJECTED)",
+          "queue_position": "Int",
+          "createdAt": "DateTime @default(now())",
+          "updatedAt": "DateTime @updatedAt",
+          "room": "Room @relation(fields: [room_id], references: [id])",
+          "student": "Student @relation(fields: [student_id], references: [id])",
+          "members": "Member[]"
+        },
+        "indexes": [
+          "student_date_unique: [student_id, room.date] (one booking per day per student)"
+        ]
+      },
+      {
+        "name": "Member",
+        "description": "Stores group members for each booking",
+        "fields": {
+          "id": "String @id @default(cuid())",
+          "booking_id": "String",
+          "name": "String",
+          "registration_no": "String",
+          "createdAt": "DateTime @default(now())",
+          "booking": "Booking @relation(fields: [booking_id], references: [id])"
+        }
+      }
+    ]
+  },
+  "api_endpoints": {
+    "base_url": "/api/v1",
+    "authentication": {
+      "POST /auth/login": {
+        "description": "User login",
+        "request": "{ registration_no, password }",
+        "response": "{ token, user: { id, registration_no, role } }"
+      },
+      "POST /auth/register": {
+        "description": "Student registration",
+        "request": "{ registration_no, phone_number, email, semester, password }",
+        "response": "{ message, student: { id, registration_no } }"
+      },
+      "POST /auth/admin/login": {
+        "description": "Admin login",
+        "request": "{ registration_no, password }",
+        "response": "{ token, admin: { id, registration_no, role } }"
+      }
+    },
+    "rooms": {
+      "GET /rooms": {
+        "description": "Get all rooms with bookings",
+        "response": "{ rooms: [RoomWithBookings] }"
+      },
+      "GET /rooms/:id": {
+        "description": "Get room details by ID",
+        "response": "{ room: RoomWithBookings }"
+      },
+      "GET /rooms/:id/availability": {
+        "description": "Get room availability for date",
+        "params": "{ date: string }",
+        "response": "{ slots: [TimeSlotStatus] }"
+      }
+    },
+    "bookings": {
+      "GET /bookings": {
+        "description": "Get all bookings (Admin only)",
+        "response": "{ bookings: [BookingWithDetails] }"
+      },
+      "GET /bookings/my": {
+        "description": "Get current student's bookings",
+        "response": "{ bookings: [BookingWithDetails] }"
+      },
+      "GET /bookings/date/:date": {
+        "description": "Get bookings by date",
+        "response": "{ bookings: [BookingWithDetails] }"
+      },
+      "POST /bookings": {
+        "description": "Create new booking request",
+        "request": "{ room_id, applicant_data, group_members: [] }",
+        "response": "{ message, booking: BookingWithDetails }"
+      },
+      "PUT /bookings/:id": {
+        "description": "Update booking (Admin only)",
+        "request": "{ status, ... }",
+        "response": "{ message, booking: BookingWithDetails }"
+      },
+      "PUT /bookings/:id/approve": {
+        "description": "Approve booking (Admin only)",
+        "response": "{ message, booking: BookingWithDetails }"
+      },
+      "PUT /bookings/:id/reject": {
+        "description": "Reject booking (Admin only)",
+        "response": "{ message }"
+      },
+      "DELETE /bookings/:id": {
+        "description": "Cancel/delete booking",
+        "response": "{ message }"
+      }
+    },
+    "queue": {
+      "GET /queue/:roomId/:date/:timeSlot": {
+        "description": "Get queue status for specific slot",
+        "response": "{ queue: [BookingWithPosition], queue_count, max_queue }"
+      },
+      "POST /queue/join": {
+        "description": "Join queue for booking",
+        "request": "{ room_id, student_id }",
+        "response": "{ message, position: number }"
+      },
+      "POST /queue/leave": {
+        "description": "Leave queue",
+        "request": "{ booking_id }",
+        "response": "{ message }"
+      }
+    },
+    "students": {
+      "GET /students": {
+        "description": "Get all students (Admin only)",
+        "response": "{ students: [Student] }"
+      },
+      "GET /students/:id": {
+        "description": "Get student details",
+        "response": "{ student: StudentWithBookings }"
+      },
+      "GET /students/:id/members": {
+        "description": "Get group members for student",
+        "response": "{ members: [Member] }"
+      }
+    }
+  },
+  "middleware_setup": {
+    "cors": "Enable CORS for frontend communication",
+    "auth": "JWT token verification middleware",
+    "role_check": "Admin role verification middleware",
+    "error_handler": "Global error handling middleware",
+    "validation": "Request validation middleware using Zod"
+  },
+  "business_logic": {
+    "working_days_validation": {
+      "description": "Ensure bookings only on Monday-Friday",
+      "implementation": "Check day of week, exclude weekends"
+    },
+    "one_booking_per_day": {
+      "description": "Student can only have one booking per day",
+      "implementation": "Check existing bookings for student and date"
+    },
+    "queue_management": {
+      "description": "FIFO queue with max 5 people per slot",
+      "implementation": "Calculate queue position, enforce max limit"
+    },
+    "concurrent_booking": {
+      "description": "Handle simultaneous booking requests",
+      "implementation": "Database transactions with row locking"
+    }
+  },
+  "security_measures": {
+    "authentication": "JWT tokens with expiration",
+    "password_hashing": "bcrypt with salt rounds",
+    "input_validation": "Zod schemas for all inputs",
+    "sql_injection_prevention": "Prisma ORM parameterized queries",
+    "rate_limiting": "Limit login attempts and booking requests"
+  },
+  "error_handling": {
+    "error_codes": {
+      "AUTH_001": "Invalid credentials",
+      "AUTH_002": "Token expired",
+      "AUTH_003": "Unauthorized access",
+      "BOOK_001": "Room not available",
+      "BOOK_002": "Queue full",
+      "BOOK_003": "Already booked today",
+      "BOOK_004": "Invalid time slot",
+      "BOOK_005": "Weekend booking not allowed",
+      "VAL_001": "Invalid input data",
+      "SYS_001": "Database error",
+      "SYS_002": "Server error"
+    },
+    "response_format": {
+      "success": "{ success: true, data: {...} }",
+      "error": "{ success: false, error: { code, message } }"
+    }
+  },
+  "testing_strategy": {
+    "unit_tests": "Test business logic functions",
+    "integration_tests": "Test API endpoints",
+    "database_tests": "Test database operations",
+    "auth_tests": "Test authentication flow"
+  },
+  "deployment_preparation": {
+    "environment_variables": [
+      "DATABASE_URL",
+      "JWT_SECRET",
+      "JWT_EXPIRATION",
+      "PORT"
+    ],
+    "database_migrations": "Prisma migrate commands",
+    "build_process": "TypeScript compilation"
+  }
+}

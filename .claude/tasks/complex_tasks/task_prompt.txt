@@ -1,0 +1,271 @@
+# MAIN TASK
+Remove student authentication from PAF-IAST Library Room Booking System, allowing guest bookings while preserving admin authentication
+
+## PROJECT STRUCTURE
+Current relevant files:
+- Frontend: React + TypeScript + TailwindCSS
+- Authentication: AuthContext with JWT
+- Routing: React Router with protected routes
+- State: Context API + React Query
+- Forms: React Hook Form + Zod validation
+
+Files to CREATE (2):
+- src/contexts/GuestContext.tsx - Manage guest student data
+- src/components/GuestForm.tsx - Collect student details
+
+Files to MODIFY (10):
+- src/contexts/AuthContext.tsx - Add guest mode support
+- src/App.tsx - Update routing structure
+- src/pages/StudentDashboard.tsx - Transform to guest-first
+- src/components/BookingModal.tsx - Use guest data
+- src/lib/api.ts - Update for guest bookings
+- src/types/api.ts - Update type definitions
+- src/pages/LoginPage.tsx - Remove student login
+- src/components/ProtectedRoute.tsx - Allow guest access
+- src/hooks/useAuthErrorHandler.ts - Handle guest errors
+- src/index.css - Add guest mode styles
+
+Files UNCHANGED (15+):
+- Admin dashboard and routes
+- UI components (Button, Input, etc.)
+- Calendar and time slot components
+
+## IMPLEMENTATION PLAN
+Follow the JSON files exactly in this order:
+
+Phase 1 - Setup (Files: task_student_auth_removal.json + frontend_student_auth_removal.json)
+1. Create GuestContext with localStorage persistence
+2. Create GuestForm with validation
+
+Phase 2 - Authentication (progress_student_auth_removal.json)
+3. Refactor AuthContext to support guest mode
+4. Update auth error handler
+
+Phase 3 - Routing (structure_student_auth_removal.json)
+5. Update App.tsx routing
+6. Update ProtectedRoute to allow guests
+
+Phase 4 - Dashboard
+7. Transform StudentDashboard to show guest form or booking
+
+Phase 5 - Booking Flow
+8. Update BookingModal to use guest data
+9. Update API client for guest submissions
+
+Phase 6 - Types
+10. Update TypeScript definitions
+
+Phase 7 - Login Simplification
+11. Simplify LoginPage (admin only)
+
+Phase 8 - Styling
+12. Update styles for guest mode
+
+Testing Phase:
+13-17. Test all flows and edge cases
+
+## TASKS
+Please follow the JSON files exactly to:
+
+### Phase 1: Create Context and Form
+1. Create `src/contexts/GuestContext.tsx`:
+   - Export GuestStudent interface
+   - Create GuestContext with guestData state
+   - Implement methods: setGuestStudent, getGuestStudent, clearGuestStudent
+   - Persist to localStorage key: 'guestStudentData'
+   - Validate guest data before setting
+
+2. Create `src/components/GuestForm.tsx`:
+   - Use react-hook-form + zod validation
+   - 5 fields: registrationNo, name, phone, email, semester
+   - Real-time validation with debounced auto-save
+   - Auto-save to localStorage on change
+   - Submit button disabled until all valid
+
+### Phase 2: Refactor Authentication
+3. Modify `src/contexts/AuthContext.tsx`:
+   - Add userType: 'GUEST' | 'STUDENT' | 'ADMIN'
+   - Add isGuest boolean getter
+   - Modify login() to accept userType parameter
+   - Modify logout() to call clearGuestStudent()
+   - Add setGuestMode() method
+
+4. Update `src/hooks/useAuthErrorHandler.ts`:
+   - Check userType before handling errors
+   - Don't logout guests on auth errors
+
+### Phase 3: Update Routing
+5. Modify `src/App.tsx`:
+   - Add route: /book → StudentDashboard (no auth)
+   - Keep route: /admin → AdminDashboard (admin auth)
+   - Update /login → Admin login only
+   - Change default redirect: / → /book
+
+6. Update `src/components/ProtectedRoute.tsx`:
+   - Allow access if userType === 'GUEST'
+   - Allow access if user exists (authenticated)
+   - Redirect if not authenticated and not guest
+
+### Phase 4: Transform Dashboard
+7. Modify `src/pages/StudentDashboard.tsx`:
+   - Remove ProtectedRoute wrapper
+   - Import and use GuestContext
+   - Check: guestData exists?
+   - If no: show GuestForm
+   - If yes: show booking interface with guest header
+   - Header: "Guest: [Name]" with edit button
+   - Hide "My Bookings" tab for guests
+
+### Phase 5: Update Booking
+8. Modify `src/components/BookingModal.tsx`:
+   - Import GuestContext
+   - Get data: userType === 'GUEST' ? guestData : user
+   - Pre-fill form fields from data source
+   - Build submission payload from data source
+   - After success: clearGuestStudent()
+
+9. Update `src/lib/api.ts`:
+   - Update bookings.create() type
+   - Accept guest data OR authenticated user data
+   - Determine data source from context
+   - Build payload accordingly
+
+### Phase 6: Update Types
+10. Modify `src/types/api.ts`:
+    - Add GuestStudent interface
+    - Update Booking: studentId optional, add registrationNo
+    - Update BookingFormData
+
+### Phase 7: Simplify Login
+11. Modify `src/pages/LoginPage.tsx`:
+    - Remove student/admin toggle
+    - Remove student login option
+    - Keep only admin login
+    - Update title: "Admin Panel"
+    - Add helper: "Students book at /book"
+
+### Phase 8: Add Styles
+12. Modify `src/index.css`:
+    - Add .guest-badge styles
+    - Add .guest-form styles
+    - Add .guest-header styles
+
+### Testing Phase
+13. Test guest booking flow (13 in progress_student_auth_removal.json)
+14. Test admin authentication (14)
+15. Test data persistence (15)
+16. Test form validation (16)
+17. Test edge cases (17)
+
+## IMPORTANT REQUIREMENTS
+
+⚠️ DO NOT MODIFY:
+- Admin authentication functionality
+- Backend API structure
+- Admin dashboard
+- Calendar component
+- TimeSlotGrid component
+- UI components (Button, Input, Card, Dialog)
+- Existing admin routes and protection
+
+✅ MUST PRESERVE:
+- Admin must login to access /admin
+- Admin dashboard unchanged
+- Booking logic unchanged
+- Queue management unchanged
+- Existing authenticated students can still login
+- Code style and patterns
+- TypeScript strict mode
+- Accessibility standards
+
+✅ IMPLEMENT EXACTLY AS SHOWN:
+- GuestContext localStorage key: 'guestStudentData'
+- Guest form validation patterns from frontend_student_auth_removal.json
+- Routing structure from structure_student_auth_removal.json
+- Data flow from structure_student_auth_removal.json
+- Progress tracking from progress_student_auth_removal.json
+
+## REFERENCE WORK
+Use the code snippets in the JSON files as your implementation guide.
+
+Each file shows:
+- Which file to modify
+- What code to add/replace
+- What the new implementation should be
+
+OR
+
+What's the new thing you are going to added
+
+## DATA MAPPING
+
+Guest Data Structure:
+```typescript
+{
+  registrationNo: string,  // Pattern: ^[0-9]{4}-[A-Z]{2,3}-[0-9]{3,4}$
+  name: string,            // Min 2 words, letters/spaces only
+  phoneNumber: string,     // Pattern: ^\\+92[0-9]{10}$
+  email: string,          // Email format
+  semester: string        // 1st-8th or 1-8
+}
+```
+
+Booking Submission (Guest):
+```typescript
+{
+  roomId: string,
+  registrationNo: string (from guestData),
+  applicantName: string (from guestData),
+  applicantPhone: string (from guestData),
+  applicantEmail: string (from guestData),
+  applicantSemester: string (from guestData),
+  groupMemberCount: number,
+  members: array (optional)
+}
+```
+
+Booking Submission (Authenticated - unchanged):
+```typescript
+{
+  roomId: string,
+  studentId: string (from auth),
+  // ... other fields from user
+}
+```
+
+## SUCCESS CRITERIA
+After implementation:
+1. ✅ Students can visit /book and book without login
+2. ✅ GuestForm collects all student details with validation
+3. ✅ Guest data persists during session (localStorage)
+4. ✅ Booking uses guest data, submits successfully
+5. ✅ Admin still must login at /admin
+6. ✅ Admin can view and manage guest bookings
+7. ✅ Existing authenticated students still work
+8. ✅ All form validations pass
+9. ✅ TypeScript compiles without errors
+10. ✅ No breaking changes to existing functionality
+11. ✅ Accessibility maintained (ARIA labels, keyboard nav)
+12. ✅ Performance unchanged
+
+## QUESTIONS FOR CLARIFICATION
+
+Before implementation, please confirm:
+
+1. **Backend Compatibility**: Will the backend accept guest booking data without studentId? Should we proceed assuming backend handles this, or do we need backend changes?
+
+2. **Data Persistence**: Is localStorage acceptable for guest data, or should we use sessionStorage? Should data persist across browser sessions or only during session?
+
+3. **Registration Numbers**: What exact format should registration numbers follow? The JSON shows `^[0-9]{4}-[A-Z]{2,3}-[0-9]{3,4}$` - should we validate against actual PAF-IAST format?
+
+4. **Email Domain**: Should we restrict to specific email domains (e.g., @paf-iast.edu.pk) or allow any email?
+
+5. **Backward Compatibility**: Should we keep the /student route working for already-registered students, or redirect to /book?
+
+6. **Guest Data Clearing**: When exactly should guest data be cleared? After successful booking, or also on logout, or also after X hours?
+
+7. **Admin View**: How should admin see guest bookings differently from authenticated bookings? Any special indicators?
+
+8. **Testing**: Should we create automated tests (Jest) or just manual testing sufficient?
+
+Please provide answers to these questions before we proceed with implementation.

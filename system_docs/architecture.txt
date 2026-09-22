@@ -1,0 +1,787 @@
+
+================================================================================
+                        PAF-IAST LIBRARY MANAGEMENT SYSTEM
+                              SYSTEM ARCHITECTURE
+================================================================================
+
+
+================================================================================
+                              1. DATABASE LOGIC
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         DATABASE SCHEMA                                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────────┐                                                       │
+│  │     ROOMS       │                                                       │
+│  ├─────────────────┤                                                       │
+│  │ id              │                                                       │
+│  │ room_number     │  (1 or 2)                                             │
+│  │ date            │                                                       │
+│  │ time_slot       │  (9:00-10:00, 10:00-11:00, etc.)                     │
+│  │ status          │  (ACTIVE | PENDING | APPROVED)                       │
+│  │ queue_count     │  (current queue position)                            │
+│  │ max_queue       │  (fixed at 5)                                         │
+│  └────────┬────────┘                                                       │
+│           │                                                                │
+│           │ 1-to-Many                                                     │
+│           ▼                                                                │
+│  ┌─────────────────┐                                                       │
+│  │    STUDENTS     │                                                       │
+│  ├─────────────────┤                                                       │
+│  │ id              │                                                       │
+│  │ registration_no │                                                       │
+│  │ phone_number    │                                                       │
+│  │ email           │                                                       │
+│  │ semester        │                                                       │
+│  │ queue_id        │  (position in queue)                                  │
+│  │ request_status  │                                                       │
+│  │ room_id         │  (FK)                                                 │
+│  └────────┬────────┘                                                       │
+│           │                                                                │
+│           │ 1-to-Many                                                     │
+│           ▼                                                                │
+│  ┌─────────────────┐                                                       │
+│  │    MEMBERS      │                                                       │
+│  ├─────────────────┤                                                       │
+│  │ id              │                                                       │
+│  │ name            │                                                       │
+│  │ registration_no │                                                       │
+│  │ room_id         │  (FK)                                                 │
+│  │ student_id      │  (FK)                                                 │
+│  └─────────────────┘                                                       │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+                         2. QUEUE SYSTEM & SYSTEM RULES
+================================================================================
+
+------------------------------- QUEUE SYSTEM LOGIC -------------------------------
+
+SCENARIO 1: Empty Time Slot
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Time: 9:00-10:00 │ Status: ACTIVE (GREEN) │ Queue: 0/5                     │
+│ → No students applied yet                                                   │
+│ → Slot is completely open                                                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+↓ STUDENT 1 APPLIES
+
+SCENARIO 2: First Student Applies
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Time: 9:00-10:00 │ Status: PENDING (YELLOW) │ Queue: 0/5                   │
+│ Queue Position 1: Ali Ahmed - FA21-BSE-001                                  │
+│ → First student in queue                                                    │
+│ → Status changed from ACTIVE to PENDING                                     │
+│ → total_queue_member = 0 (no one behind)                                    │
+│ → Queue display: 0/5 (total_queue_member - 1 = -1, shows as 0)             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+↓ STUDENT 2 APPLIES
+
+SCENARIO 3: Second Student Applies (FIFO Queue)
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Time: 9:00-10:00 │ Status: PENDING (YELLOW) │ Queue: 1/5                   │
+│ Queue Position 1: Ali Ahmed - FA21-BSE-001                                  │
+│ Queue Position 2: Usman Tariq - FA21-BSE-015                                │
+│ → Second student joins queue                                                │
+│ → Status remains PENDING                                                    │
+│ → total_queue_member = 2                                                    │
+│ → Queue display: 1/5 (total_queue_member - 1 = 2 - 1 = 1)                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+↓ STUDENT 3 APPLIES
+
+SCENARIO 4: Third Student Applies
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Time: 9:00-10:00 │ Status: PENDING (YELLOW) │ Queue: 2/5                   │
+│ Queue Position 1: Ali Ahmed - FA21-BSE-001                                  │
+│ Queue Position 2: Usman Tariq - FA21-BSE-015                                │
+│ Queue Position 3: Hassan Khan - FA21-BSE-022                                │
+│ → Third student joins queue                                                 │
+│ → total_queue_member = 3                                                    │
+│ → Queue display: 2/5 (total_queue_member - 1 = 3 - 1 = 2)                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+↓ MORE STUDENTS APPLY
+
+SCENARIO 5: Queue Full
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Time: 9:00-10:00 │ Status: PENDING (YELLOW) │ Queue: 4/5 (FULL)            │
+│ Queue Position 1: Ali Ahmed - FA21-BSE-001                                  │
+│ Queue Position 2: Usman Tariq - FA21-BSE-015                                │
+│ Queue Position 3: Hassan Khan - FA21-BSE-022                                │
+│ Queue Position 4: Fatima Noor - FA21-BSE-033                                │
+│ Queue Position 5: Sara Ali - FA21-BSE-044                                   │
+│ → Queue is now FULL (Maximum 5 allowed)                                     │
+│ → total_queue_member = 5                                                    │
+│ → Queue display: 4/5 (total_queue_member - 1 = 5 - 1 = 4)                  │
+│ → No more students can apply to this slot                                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+↓ ADMIN APPROVES REQUEST #1
+
+SCENARIO 6: Admin Approves First Student
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Time: 9:00-10:00 │ Status: APPROVE (BLUE) │ Queue: APPROVED                │
+│ Approved: Ali Ahmed - FA21-BSE-001                                          │
+│ → Admin approved the first request                                          │
+│ → Status changed from PENDING to APPROVE                                    │
+│ → Remaining queue requests are cleared/rejected                             │
+│ → Slot is now booked for Ali Ahmed's group                                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+↓ ADMIN REJECTS ALL REQUESTS
+
+SCENARIO 7: Admin Rejects All Requests
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Time: 9:00-10:00 │ Status: ACTIVE (GREEN) │ Queue: 0/5                     │
+│ → Admin rejected all pending requests                                       │
+│ → Status returns to ACTIVE                                                  │
+│ → Slot is available again for new bookings                                  │
+│ → Queue is cleared                                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+---------------------------- QUEUE CALCULATION FORMULA -------------------------
+
+Formula: Queue Display = (total_queue_member - 1) / 5
+
+Examples:
+- 1 student applies  → total_queue_member = 1 → Display: 0/5
+- 2 students apply   → total_queue_member = 2 → Display: 1/5
+- 3 students apply   → total_queue_member = 3 → Display: 2/5
+- 4 students apply   → total_queue_member = 4 → Display: 3/5
+- 5 students apply   → total_queue_member = 5 → Display: 4/5 (FULL)
+
+-------------------------------- SYSTEM RULES ----------------------------------
+
+WEEKEND SKIP LOGIC - WORKING DAYS ONLY
+Rule: "Next 2 days" means next 2 WORKING days (Monday-Friday only)
+
+Algorithm:
+1. Start from current date
+2. Count forward, skipping Saturday and Sunday
+3. Mark next 2 working days as clickable
+4. Saturday and Sunday are ALWAYS RED and non-clickable
+5. All other dates are locked
+
+Examples:
+- Thursday  → Clickable: Thu, Mon, Tue (skip Sat/Sun)
+- Friday    → Clickable: Fri, Mon, Tue (skip Sat/Sun)
+- Monday    → Clickable: Mon, Tue, Wed
+- Tuesday   → Clickable: Tue, Wed, Thu
+- Wednesday → Clickable: Wed, Thu, Fri
+
+-------------------------------- SYSTEM RULES ----------------------------------
+
+SLOT READ-ONLY RULE (CRITICAL)
+When admin APPROVES a booking request:
+- Status changes from PENDING → APPROVED
+- Slot becomes READ-ONLY for ALL users
+- User cannot click on the slot anymore
+- UI shows: "FULL" with blue background
+- No booking form will appear for this slot
+- This is FINAL state until booking time expires
+
+Example:
+┌─────────────────┬─────────────────┬─────────────────┬─────────────────┐
+│   9:00-10:00    │  10:00-11:00    │  11:00-12:00    │  12:00-1:00     │
+│                 │                 │                 │                 │
+│   STATUS:       │   STATUS:       │   STATUS:       │   STATUS:       │
+│   ACTIVE        │   PENDING       │   APPROVE       │   ACTIVE        │
+│   (GREEN BG)    │   (YELLOW BG)   │   (BLUE BG)     │   (GREEN BG)    │
+│                 │                 │                 │                 │
+│   [AVAILABLE]   │   Queue: 2/5    │   FULL          │   [AVAILABLE]   │
+│   (Clickable)   │   (Clickable)   │   READ-ONLY     │   (Clickable)   │
+│                 │                 │   (Not Clickable)                 │
+└─────────────────┴─────────────────┴─────────────────┴─────────────────┘
+
+Frontend Logic:
+IF slot.status == "APPROVED":
+    - Disable click event
+    - Show blue background
+    - Display "FULL" text
+    - No pop-up form on click
+ELSE IF slot.status == "PENDING":
+    - Show yellow background
+    - Display queue position
+    - Allow click (show queue info)
+ELSE IF slot.status == "ACTIVE":
+    - Show green background
+    - Display "AVAILABLE"
+    - Allow click (open booking form)
+
+CORRECTED CALENDAR LOGIC (SKIPPING WEEKENDS)
+
+EXAMPLE 1: If Today is Friday, January 10, 2026
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          JANUARY 2026 CALENDAR                               │
+│                                                                              │
+│   Sun    Mon    Tue    Wed    Thu    Fri    Sat                            │
+│  ─────  ─────  ─────  ─────  ─────  ─────  ─────                           │
+│  │ 05 │ │ 06 │ │ 07 │ │ 08 │ │ 09 │ │[10]│ │ 11 │                          │
+│  │RED │ │ 🔒 │ │ 🔒 │ │ 🔒 │ │ 🔒 │ │ ✓ │ │RED │                          │
+│  ─────  ─────  ─────  ─────  ─────  ─────  ─────                           │
+│                                                                              │
+│  │ 12 │ │ 13 │ │ 14 │ │ 15 │ │ 16 │ │ 17 │ │ 18 │                          │
+│  │RED │ │ ✓  │ │ ✓  │ │ 🔒 │ │ 🔒 │ │ 🔒 │ │RED │                          │
+│  ─────  ─────  ─────  ─────  ─────  ─────  ─────                           │
+│                                                                              │
+│  Logic:                                                                      │
+│  - Today = Friday, Jan 10 (Clickable)                                       │
+│  - Next 2 WORKING days = Monday Jan 13, Tuesday Jan 14 (Skip Sat 11, Sun 12)│
+│  - Saturday/Sunday = RED (Always excluded from counting)                    │
+│                                                         [< Previous] [Next >]│
+└─────────────────────────────────────────────────────────────────────────────┘
+
+EXAMPLE 2: If Today is Monday, January 13, 2026
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          JANUARY 2026 CALENDAR                               │
+│                                                                              │
+│   Sun    Mon    Tue    Wed    Thu    Fri    Sat                            │
+│  ─────  ─────  ─────  ─────  ─────  ─────  ─────                           │
+│  │ 12 │ │[13]│ │ 14 │ │ 15 │ │ 16 │ │ 17 │ │ 18 │                          │
+│  │RED │ │ ✓  │ │ ✓  │ │ ✓  │ │ 🔒 │ │ 🔒 │ │RED │                          │
+│  ─────  ─────  ─────  ─────  ─────  ─────  ─────                           │
+│                                                                              │
+│  Logic:                                                                      │
+│  - Today = Monday, Jan 13 (Clickable)                                       │
+│  - Next 2 WORKING days = Tuesday Jan 14, Wednesday Jan 15                   │
+│  - Saturday/Sunday = RED (Always excluded)                                  │
+│                                                         [< Previous] [Next >]│
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+                           3. BACKEND EXPLANATION
+================================================================================
+
+---------------------------- API ENDPOINTS STRUCTURE ---------------------------
+
+ROOM MANAGEMENT:
+- GET /api/rooms              - List all rooms
+- GET /api/rooms/{id}         - Get room details
+- POST /api/rooms             - Create new room
+- PUT /api/rooms/{id}         - Update room
+- DELETE /api/rooms/{id}      - Delete room
+
+BOOKING MANAGEMENT:
+- GET /api/bookings           - List all bookings
+- GET /api/bookings/date/{date} - Get bookings by date
+- GET /api/bookings/room/{roomId}/date/{date} - Get room bookings for date
+- POST /api/bookings          - Create booking request
+- PUT /api/bookings/{id}      - Update booking
+- PUT /api/bookings/{id}/approve - Approve booking (Admin)
+- PUT /api/bookings/{id}/reject  - Reject booking (Admin)
+- DELETE /api/bookings/{id}   - Cancel/delete booking
+
+QUEUE MANAGEMENT:
+- GET /api/queue/{roomId}/{date}/{timeSlot} - Get queue status
+- POST /api/queue/join        - Join queue
+- POST /api/queue/leave       - Leave queue
+
+STUDENT/MEMBER MANAGEMENT:
+- GET /api/students           - List all students
+- GET /api/students/{id}      - Get student details
+- POST /api/students          - Register student
+- PUT /api/students/{id}      - Update student
+- GET /api/members/student/{studentId} - Get members by student
+
+AUTHENTICATION:
+- POST /api/auth/login        - User login
+- POST /api/auth/register     - User registration
+- POST /api/auth/admin/login  - Admin login
+
+-------------------------- BACKEND DATA FLOW ----------------------------------
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            BACKEND ARCHITECTURE                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────┐                                                           │
+│  │   CLIENT    │                                                           │
+│  │  (Browser)  │                                                           │
+│  └──────┬──────┘                                                           │
+│         │                                                                  │
+│         ▼                                                                  │
+│  ┌─────────────┐     ┌─────────────────────────────────────────────────┐  │
+│  │   REST API  │────▶│                    LAYERS                       │  │
+│  │  (Express)  │     ├─────────────────────────────────────────────────┤  │
+│  └──────┬──────┘     │  CONTROLLER LAYER  │  Request handling          │  │
+│         │            │  (Routes)          │  Input validation           │  │
+│         │            ├────────────────────┼─────────────────────────────┤  │
+│         │            │  SERVICE LAYER     │  Business logic             │  │
+│         │            │  (Operations)      │  Queue management           │  │
+│         │            ├────────────────────┼─────────────────────────────┤  │
+│         │            │  MODEL LAYER       │  Database operations        │  │
+│         │            │  (Database)        │  Relationships              │  │
+│         │            └────────────────────┴─────────────────────────────┘  │
+│         │                              │                                   │
+│         ▼                              ▼                                   │
+│  ┌─────────────┐               ┌─────────────┐                            │
+│  │   FRONTEND  │               │  DATABASE   │                            │
+│  │   (React)   │               │ (PostgreSQL │                            │
+│  └─────────────┘               │  / MySQL)   │                            │
+│                                └─────────────┘                            │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+                         4. ADMIN FRONT-END
+================================================================================
+
+ADMIN DASHBOARD - TEXT UI ARCHITECTURE
+
+================================================================================
+│  PAF-IAST LIBRARY - ADMIN DASHBOARD                                         │
+================================================================================
+│  [ROOM 1]  [ROOM 2]  [DATA]                                    [Admin Name]│
+================================================================================
+
+↓ WHEN ADMIN CLICKS "ROOM 1"
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     ROOM 1 - BOOKING MANAGEMENT                             │
+│                                                                              │
+│                          JANUARY 2026 CALENDAR                               │
+│                                                                              │
+│   Sun    Mon    Tue    Wed    Thu    Fri    Sat                            │
+│  ─────  ─────  ─────  ─────  ─────  ─────  ─────                           │
+│  │ 05 │ │ 06 │ │ 07 │ │ 08 │ │[09]│ │ 10 │ │ 11 │  <- All past dates      │
+│  │ ✓  │ │ ✓  │ │ ✓  │ │ ✓  │ │ ✓ │ │ ✓ │ │ ✓ │     + current (09)      │
+│  ─────  ─────  ─────  ─────  ─────  ─────  ─────      + next 2 = clickable│
+│                                                                              │
+│  │ 12 │ │ 13 │ │ 14 │ │ 15 │ │ 16 │ │ 17 │ │ 18 │                          │
+│  │ 🔒 │ │ 🔒 │ │ 🔒 │ │ 🔒 │ │ 🔒 │ │ 🔒 │ │ 🔒 │     Beyond 2 days=locked │
+│  ─────  ─────  ─────  ─────  ─────  ─────  ─────                           │
+│                                                                              │
+│  Logic: All Previous + Current (09) + Next 2 Days = Clickable              │
+│         Beyond Next 2 Days = 🔒 Locked                                       │
+│                                                         [< Previous] [Next >]│
+└─────────────────────────────────────────────────────────────────────────────┘
+
+↓ ADMIN SELECTS DATE (e.g., January 09, 2026)
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│              ROOM 1 - TIME SLOTS - JANUARY 09, 2026                         │
+│                                                                              │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │ 9:00-10:00  │ STATUS: PENDING (YELLOW) │ Queue: 2/5        [▼]       │  │
+│  └───────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │ 10:00-11:00 │ STATUS: ACTIVE (GREEN)   │ Queue: 0/5        [▼]       │  │
+│  └───────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │ 11:00-12:00 │ STATUS: APPROVE (BLUE)   │ Queue: FULL       [▼]       │  │
+│  └───────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │ 12:00-1:00  │ STATUS: ACTIVE (GREEN)   │ Queue: 0/5        [▼]       │  │
+│  └───────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │ 1:00-2:00   │ STATUS: PENDING (YELLOW) │ Queue: 1/5        [▼]       │  │
+│  └───────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │ 2:00-3:00   │ STATUS: ACTIVE (GREEN)   │ Queue: 0/5        [▼]       │  │
+│  └───────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │ 3:00-4:00   │ STATUS: ACTIVE (GREEN)   │ Queue: 0/5        [▼]       │  │
+│  └───────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │ 4:00-5:00   │ STATUS: PENDING (YELLOW) │ Queue: 3/5        [▼]       │  │
+│  └───────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+↓ ADMIN CLICKS ON TIME SLOT DROPDOWN (e.g., 9:00-10:00) [▼]
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │ 9:00-10:00  │ STATUS: PENDING (YELLOW) │ Queue: 1/5            [▲] │  │
+│  ├───────────────────────────────────────────────────────────────────────┤  │
+│  │                                                                        │  │
+│  │  ┌────────────────────────────────────────────┬─────────────────────┐ │  │
+│  │  │ REQUEST #1 - Queue Position: 1/5           │  ┌───────────────┐ │ │  │
+│  │  ├────────────────────────────────────────────┤  │   APPROVE     │ │ │  │
+│  │  │ Student: Ali Ahmed                         │  │   (GREEN)     │ │ │  │
+│  │  │ Registration: FA21-BSE-001                 │  └───────────────┘ │ │  │
+│  │  │ Phone: +92-300-1234567                     │                     │ │  │
+│  │  │ Email: ali.ahmed@paf-iast.edu.pk           │  ┌───────────────┐ │ │  │
+│  │  │ Semester: 6th                              │  │    REJECT     │ │ │  │
+│  │  │                                            │  │    (RED)      │ │ │  │
+│  │  │ MEMBERS:                                   │  └───────────────┘ │ │  │
+│  │  │  1. Hassan Khan - FA21-BSE-002             │                     │ │  │
+│  │  │  2. Sara Ali - FA21-BSE-003                │                     │ │  │
+│  │  │  3. Fatima Noor - FA21-BSE-004             │                     │ │  │
+│  │  └────────────────────────────────────────────┴─────────────────────┘ │  │
+│  │                                                                        │  │
+│  │  ┌────────────────────────────────────────────┬─────────────────────┐ │  │
+│  │  │ REQUEST #2 - Queue Position: 2/5           │  ┌───────────────┐ │ │  │
+│  │  ├────────────────────────────────────────────┤  │   APPROVE     │ │ │  │
+│  │  │ Student: Usman Tariq                       │  │   (GREEN)     │ │ │  │
+│  │  │ Registration: FA21-BSE-015                 │  └───────────────┘ │ │  │
+│  │  │ Phone: +92-301-9876543                     │                     │ │  │
+│  │  │ Email: usman.tariq@paf-iast.edu.pk         │  ┌───────────────┐ │ │  │
+│  │  │ Semester: 5th                              │  │    REJECT     │ │ │  │
+│  │  │                                            │  │    (RED)      │ │ │  │
+│  │  │ MEMBERS:                                   │  └───────────────┘ │ │  │
+│  │  │  1. Ahmed Raza - FA21-BSE-016              │                     │ │  │
+│  │  │  2. Bilal Shah - FA21-BSE-017              │                     │ │  │
+│  │  └────────────────────────────────────────────┴─────────────────────┘ │  │
+│  │                                                                        │  │
+│  └────────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+│  Layout: Student data on LEFT side | Buttons on RIGHT side                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+↓ ROOM 2 - SAME STRUCTURE AS ROOM 1
+
+---------------------------------- DATA PAGE ----------------------------------
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          DATA MANAGEMENT                                     │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  Search/Filter Options:                                             │   │
+│  │                                                                      │   │
+│  │  Registration Number: [________________] [Search]                   │   │
+│  │                                                                      │   │
+│  │  Date Range: [__________] to [__________] [Filter]                 │   │
+│  │                                                                      │   │
+│  │  Status: [All ▼] [Active] [Pending] [Approve]                      │   │
+│  │                                                                      │   │
+│  │  Room: [All ▼] [Room 1] [Room 2]                                   │   │
+│  │                                                                      │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                         RESULTS TABLE                               │   │
+│  ├──────┬─────────┬──────┬────────┬──────────┬────────┬──────────────┤   │
+│  │ Reg# │  Name   │ Room │  Date  │   Time   │ Status │    Action    │   │
+│  ├──────┼─────────┼──────┼────────┼──────────┼────────┼──────────────┤   │
+│  │ FA21-│ Ali     │  1   │ Jan 09 │ 9:00-    │Pending │ [View][Edit] │   │
+│  │ BSE- │ Ahmed   │      │  2026  │ 10:00    │(Yellow)│ [Delete]     │   │
+│  │ 001  │         │      │        │          │        │              │   │
+│  ├──────┼─────────┼──────┼────────┼──────────┼────────┼──────────────┤   │
+│  │ FA21-│ Sara    │  2   │ Jan 09 │ 11:00-   │Approve │ [View][Edit] │   │
+│  │ BSE- │ Khan    │      │  2026  │ 12:00    │ (Blue) │ [Delete]     │   │
+│  │ 010  │         │      │        │          │        │              │   │
+│  ├──────┼─────────┼──────┼────────┼──────────┼────────┼──────────────┤   │
+│  │ ...  │   ...   │ ...  │  ...   │   ...    │  ...   │     ...      │   │
+│  └──────┴─────────┴──────┴────────┴──────────┴────────┴──────────────┘   │
+│                                                                              │
+│  Note: This page allows filtering, searching, and basic CRUD operations    │
+│        on booking data by registration number and other criteria           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+                          5. USER FRONT-END
+================================================================================
+
+USER DASHBOARD - TEXT UI ARCHITECTURE
+
+================================================================================
+                    PAF-IAST LIBRARY ROOM BOOKING SYSTEM
+================================================================================
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          JANUARY 2026 CALENDAR                               │
+│                                                                              │
+│   Sun    Mon    Tue    Wed    Thu    Fri    Sat                            │
+│  ─────  ─────  ─────  ─────  ─────  ─────  ─────                           │
+│  │ 05 │ │ 06 │ │ 07 │ │ 08 │ │[09]│ │ 10 │ │ 11 │                          │
+│  │RED │ │ 🔒 │ │ 🔒 │ │ 🔒 │ │ ✓ │ │ 🔒 │ │RED │                          │
+│  ─────  ─────  ─────  ─────  ─────  ─────  ─────                           │
+│                                                                              │
+│  │ 12 │ │ 13 │ │ 14 │ │ 15 │ │ 16 │ │ 17 │ │ 18 │                          │
+│  │RED │ │ ✓  │ │ ✓  │ │ 🔒 │ │ 🔒 │ │ 🔒 │ │RED │                          │
+│  ─────  ─────  ─────  ─────  ─────  ─────  ─────                           │
+│                                                                              │
+│  Logic:                                                                      │
+│  - Today = Thursday, Jan 09 (Clickable)                                     │
+│  - Next 2 WORKING days = Monday Jan 13, Tuesday Jan 14 (Skip Sat/Sun)      │
+│  - Saturday/Sunday = RED (Non-clickable, always locked)                     │
+│  - Past days & Beyond 2 working days = 🔒 Locked                             │
+│                                                         [< Previous] [Next >]│
+└─────────────────────────────────────────────────────────────────────────────┘
+
+↓ STAGE 1: USER SELECTS DATE (e.g., January 09, 2026)
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    SELECT ROOM - JANUARY 09, 2026                           │
+│                                                                              │
+│         ┌──────────────────────────┐    ┌──────────────────────────┐       │
+│         │                          │    │                          │       │
+│         │        ROOM 1            │    │        ROOM 2            │       │
+│         │                          │    │                          │       │
+│         │    [Click to Select]     │    │    [Click to Select]     │       │
+│         │                          │    │                          │       │
+│         └──────────────────────────┘    └──────────────────────────┘       │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+↓ STAGE 2: USER SELECTS ROOM (e.g., Room 1)
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│              SELECT TIME SLOT - ROOM 1 - JANUARY 09, 2026                   │
+│                                                                              │
+│  ┌─────────────────┬─────────────────┬─────────────────┬─────────────────┐ │
+│  │   9:00-10:00    │  10:00-11:00    │  11:00-12:00    │  12:00-1:00     │ │
+│  │                 │                 │                 │                 │ │
+│  │   STATUS:       │   STATUS:       │   STATUS:       │   STATUS:       │ │
+│  │   ACTIVE        │   PENDING       │   APPROVE       │   ACTIVE        │ │
+│  │   (GREEN BG)    │   (YELLOW BG)   │   (BLUE BG)     │   (GREEN BG)    │ │
+│  │                 │                 │                 │                 │ │
+│  │   Queue: 0/5    │   Queue: 2/5    │   Queue: FULL   │   Queue: 0/5    │ │
+│  │                 │   Ali Ahmed     │   Sara Khan     │                 │ │
+│  │   [AVAILABLE]   │   FA21-BSE-001  │   FA21-BSE-010  │   [AVAILABLE]   │ │
+│  └─────────────────┴─────────────────┴─────────────────┴─────────────────┘ │
+│                                                                              │
+│  ┌─────────────────┬─────────────────┬─────────────────┬─────────────────┐ │
+│  │   1:00-2:00     │  2:00-3:00     │   3:00-4:00     │   4:00-5:00     │ │
+│  │                 │                 │                 │                 │ │
+│  │   STATUS:       │   STATUS:       │   STATUS:       │   STATUS:       │ │
+│  │   PENDING       │   ACTIVE        │   ACTIVE        │   PENDING       │ │
+│  │   (YELLOW BG)   │   (GREEN BG)    │   (GREEN BG)    │   (YELLOW BG)   │ │
+│  │                 │                 │                 │                 │ │
+│  │   Queue: 1/5    │   Queue: 0/5    │   Queue: 0/5    │   Queue: 3/5    │ │
+│  │   Hassan Ali    │                 │                 │   Fatima Noor   │ │
+│  │   FA20-BSE-055  │   [AVAILABLE]   │   [AVAILABLE]   │   FA21-BSE-032  │ │
+│  └─────────────────┴─────────────────┴─────────────────┴─────────────────┘ │
+│                                                                              │
+│  Note: 2x4 Matrix (2 rows, 4 columns) = 8 hourly slots                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+↓ STAGE 3: USER CLICKS ON TIME SLOT (e.g., 9:00-10:00)
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           ╔═══════════════════════════════════════╗         │
+│                           ║   BOOKING REQUEST FORM                ║         │
+│                           ║   Room 1 | Jan 09, 2026 | 9:00-10:00 ║         │
+│                           ╠═══════════════════════════════════════╣         │
+│                           ║                                       ║         │
+│                           ║  ┌──────────────┬──────────────────┐ ║         │
+│                           ║  │ Name:        │ Registration No: │ ║         │
+│                           ║  │ [_________]  │ [_____________]  │ ║         │
+│                           ║  │              │                  │ ║         │
+│                           ║  │ Phone:       │ Email:           │ ║         │
+│                           ║  │ [_________]  │ [_____________]  │ ║         │
+│                           ║  │              │                  │ ║         │
+│                           ║  │ Semester:    │                  │ ║         │
+│                           ║  │ [_________]  │                  │ ║         │
+│                           ║  └──────────────┴──────────────────┘ ║         │
+│                           ║                                       ║         │
+│                           ║  ─────────────────────────────────    ║         │
+│                           ║  MEMBERS (Minimum 2 Required)         ║         │
+│                           ║  ─────────────────────────────────    ║         │
+│                           ║                                       ║         │
+│                           ║  Member 1:                            ║         │
+│                           ║  ┌─────────────────────────────────┐ ║         │
+│                           ║  │ Name: [________________]         │ ║         │
+│                           ║  │ Registration: [____________]     │ ║         │
+│                           ║  └─────────────────────────────────┘ ║         │
+│                           ║                                       ║         │
+│                           ║  Member 2:                            ║         │
+│                           ║  ┌─────────────────────────────────┐ ║         │
+│                           ║  │ Name: [________________]         │ ║         │
+│                           ║  │ Registration: [____________]     │ ║         │
+│                           ║  └─────────────────────────────────┘ ║         │
+│                           ║                                       ║         │
+│                           ║  Member 3:                            ║         │
+│                           ║  ┌─────────────────────────────────┐ ║         │
+│                           ║  │ Name: [________________]         │ ║         │
+│                           ║  │ Registration: [____________]     │ ║         │
+│                           ║  └─────────────────────────────────┘ ║         │
+│                           ║                                       ║         │
+│                           ║  [ + Add Member ] (Max 5 total)      ║         │
+│                           ║                                       ║         │
+│                           ║  ┌──────────────┐  ┌──────────────┐ ║         │
+│                           ║  │   CANCEL     │  │    SUBMIT    │ ║         │
+│                           ║  │              │  │ APPLICATION  │ ║         │
+│                           ║  │  [Enabled]   │  │  [🔒Locked]  │ ║         │
+│                           ║  └──────────────┘  └──────────────┘ ║         │
+│                           ║                                       ║         │
+│                           ║  Note: Submit unlocks when all       ║         │
+│                           ║  required fields are filled          ║         │
+│                           ╚═══════════════════════════════════════╝         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+↓ STAGE 4: AFTER SUCCESSFUL SUBMISSION
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           ╔═══════════════════════════════════════╗         │
+│                           ║                                       ║         │
+│                           ║           ✓ SUCCESS!                  ║         │
+│                           ║                                       ║         │
+│                           ║   Your booking request has been       ║         │
+│                           ║   submitted successfully!             ║         │
+│                           ║                                       ║         │
+│                           ║   Room: 1                             ║         │
+│                           ║   Date: January 09, 2026              ║         │
+│                           ║   Time: 9:00-10:00                    ║         │
+│                           ║   Queue Position: 1/5                 ║         │
+│                           ║   Status: PENDING                     ║         │
+│                           ║                                       ║         │
+│                           ║          ┌──────────────┐             ║         │
+│                           ║          │      OK      │             ║         │
+│                           ║          └──────────────┘             ║         │
+│                           ║                                       ║         │
+│                           ╚═══════════════════════════════════════╝         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+                          6. ERROR HANDLING
+================================================================================
+
+-------------------------------- POP-UP NOTIFICATIONS --------------------------
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         POP-UP NOTIFICATIONS                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  SUCCESS POP-UP:                                                            │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                                                                     │   │
+│  │                      ✓ REQUEST SUBMITTED                            │   │
+│  │                                                                     │   │
+│  │         Your booking request has been successfully submitted!       │   │
+│  │                                                                     │   │
+│  │         Room: 1  |  Date: Jan 15, 2025  |  Time: 9:00 AM           │   │
+│  │                                                                     │   │
+│  │                    Queue Position: 1/5                              │   │
+│  │                                                                     │   │
+│  │                    [ OK ]                                           │   │
+│  │                                                                     │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ERROR POP-UP (Already Booked):                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                                                                     │   │
+│  │                      ⚠ ALREADY BOOKED                               │   │
+│  │                                                                     │   │
+│  │         You already have a booking for this date!                   │   │
+│  │                                                                     │   │
+│  │         Students can only book one slot per day.                    │   │
+│  │                                                                     │   │
+│  │                    [ OK ]                                           │   │
+│  │                                                                     │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ADMIN ACTION POP-UP:                                                       │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                                                                     │   │
+│  │                      ✓ REQUEST APPROVED                              │   │
+│  │                                                                     │   │
+│  │         Student: Ahmad Hassan (FA21-BCS-045) has been approved      │   │
+│  │                                                                     │   │
+│  │         Room: 1  |  Date: Jan 15, 2025  |  Time: 9:00 AM           │   │
+│  │                                                                     │   │
+│  │                    [ OK ]                                           │   │
+│  │                                                                     │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+---------------------------- ERROR CODES & MESSAGES ---------------------------
+
+AUTHENTICATION ERRORS:
+- ERR_001: Invalid credentials
+- ERR_002: Session expired
+- ERR_003: Unauthorized access
+- ERR_004: Admin privileges required
+
+BOOKING ERRORS:
+- ERR_101: Slot already booked
+- ERR_102: Queue is full
+- ERR_103: Invalid date selected
+- ERR_104: Cannot book past dates
+- ERR_105: Weekend booking not allowed
+- ERR_106: Duplicate booking for same day
+- ERR_107: Booking not found
+- ERR_108: Booking already processed
+
+VALIDATION ERRORS:
+- ERR_201: Required field missing
+- ERR_202: Invalid registration number format
+- ERR_203: Phone number invalid
+- ERR_204: Email format invalid
+- ERR_205: Minimum 2 members required
+- ERR_206: Maximum 5 members allowed
+- ERR_207: Student already in another booking today
+
+SYSTEM ERRORS:
+- ERR_901: Database connection failed
+- ERR_902: Server timeout
+- ERR_903: Unexpected server error
+- ERR_904: Rate limit exceeded
+
+----------------------------- ERROR HANDLING FLOW -----------------------------
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         ERROR HANDLING WORKFLOW                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌──────────────┐                                                         │
+│  │   API CALL   │                                                         │
+│  └──────┬───────┘                                                         │
+│         │                                                                │
+│         ▼                                                                │
+│  ┌──────────────┐                                                         │
+│  │   TRY BLOCK  │                                                         │
+│  └──────┬───────┘                                                         │
+│         │                                                                │
+│         ├────────────────────────────────────┐                            │
+│         │                                    │                            │
+│         ▼                                    ▼                            │
+│  ┌──────────────┐                      ┌──────────────┐                   │
+│  │ SUCCESS      │                      │ CATCH BLOCK  │                   │
+│  │              │                      │              │                   │
+│  │ Return data  │                      │ Log error    │                   │
+│  │ to frontend  │                      │              │                   │
+│  └──────────────┘                      └──────┬───────┘                   │
+│                                               │                            │
+│                                               ▼                            │
+│                                    ┌─────────────────────┐                │
+│                                    │ ERROR CLASSIFICATION│                │
+│                                    ├─────────────────────┤                │
+│                                    │ 1. Validation Error │                │
+│                                    │ 2. Business Logic   │                │
+│                                    │ 3. System Error     │                │
+│                                    └──────────┬──────────┘                │
+│                                               │                            │
+│                                               ▼                            │
+│                                    ┌─────────────────────┐                │
+│                                    │ RETURN ERROR        │                │
+│                                    ├─────────────────────┤                │
+│                                    │ - Error code        │                │
+│                                    │ - User message      │                │
+│                                    │ - Status code       │                │
+│                                    └──────────┬──────────┘                │
+│                                               │                            │
+│                                               ▼                            │
+│                                    ┌─────────────────────┐                │
+│                                    │ FRONTEND HANDLER    │                │
+│                                    ├─────────────────────┤                │
+│                                    │ - Show toast/popup  │                │
+│                                    │ - Log to console    │                │
+│                                    │ - Show retry option │                │
+│                                    └─────────────────────┘                │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+                              END OF DOCUMENT
+================================================================================

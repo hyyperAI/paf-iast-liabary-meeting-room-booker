@@ -1,0 +1,438 @@
+{
+  "implementationName": "frontend_student_auth_removal",
+  "description": "Frontend implementation plan for removing student authentication with detailed UI/UX specifications",
+  "componentsToCreate": {
+    "GuestContext": {
+      "file": "src/contexts/GuestContext.tsx",
+      "purpose": "Manage guest student data without authentication",
+      "stateStructure": {
+        "guestData": {
+          "registrationNo": "string (required)",
+          "name": "string (required)",
+          "phoneNumber": "string (required)",
+          "email": "string (required)",
+          "semester": "string (required)"
+        },
+        "isGuest": "boolean"
+      },
+      "methods": [
+        "setGuestStudent(data: GuestStudent) => void",
+        "getGuestStudent() => GuestStudent | null",
+        "clearGuestStudent() => void",
+        "validateGuestData(data: GuestStudent) => ValidationResult"
+      ],
+      "localStorage": {
+        "key": "guestStudentData",
+        "persist": true,
+        "clearOn": "successful booking or logout"
+      }
+    },
+    "GuestForm": {
+      "file": "src/components/GuestForm.tsx",
+      "purpose": "Collect student details from guests before booking",
+      "uiSpecification": {
+        "layout": "Vertical form layout with card styling",
+        "fields": [
+          {
+            "name": "registrationNo",
+            "label": "Registration Number",
+            "type": "text",
+            "placeholder": "2021-CS-123",
+            "validation": "Required, pattern: ^[0-9]{4}-[A-Z]{2,3}-[0-9]{3,4}$",
+            "errorMessage": "Invalid registration number (format: 2021-CS-123)"
+          },
+          {
+            "name": "name",
+            "label": "Full Name",
+            "type": "text",
+            "placeholder": "John Doe",
+            "validation": "Required, min 2 words, letters and spaces only",
+            "errorMessage": "Name must contain at least 2 words"
+          },
+          {
+            "name": "phoneNumber",
+            "label": "Phone Number",
+            "type": "tel",
+            "placeholder": "+923001234567",
+            "validation": "Required, Pakistan format: ^\\+92[0-9]{10}$",
+            "errorMessage": "Invalid phone number (use +92XXXXXXXXXX)"
+          },
+          {
+            "name": "email",
+            "label": "Email Address",
+            "type": "email",
+            "placeholder": "student@paf-iast.edu.pk",
+            "validation": "Required, email format",
+            "errorMessage": "Invalid email address"
+          },
+          {
+            "name": "semester",
+            "label": "Current Semester",
+            "type": "select",
+            "options": ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th"],
+            "validation": "Required",
+            "errorMessage": "Please select a semester"
+          }
+        ],
+        "buttons": [
+          {
+            "text": "Continue to Booking",
+            "variant": "primary",
+            "type": "submit",
+            "disabled": "until all fields valid"
+          }
+        ],
+        "autosave": {
+          "enabled": true,
+          "trigger": "onChange with 500ms debounce",
+          "storage": "localStorage"
+        }
+      }
+    }
+  },
+  "componentsToModify": {
+    "AuthContext": {
+      "file": "src/contexts/AuthContext.tsx",
+      "changes": [
+        {
+          "property": "userType",
+          "type": "string",
+          "values": "'GUEST' | 'STUDENT' | 'ADMIN'",
+          "purpose": "Track current user mode"
+        },
+        {
+          "property": "isGuest",
+          "type": "boolean",
+          "purpose": "Quick check for guest mode"
+        },
+        {
+          "method": "login",
+          "signature": "(token: string, user: Student, userType: 'STUDENT' | 'ADMIN') => void",
+          "purpose": "Accept user type parameter"
+        },
+        {
+          "method": "logout",
+          "behavior": "Also clear guest data when logging out",
+          "code": "clearGuestStudent() if guest context available"
+        },
+        {
+          "method": "setGuestMode",
+          "signature": "(guestData: GuestStudent) => void",
+          "purpose": "Activate guest mode",
+          "code": "set userType: 'GUEST', persist to localStorage"
+        }
+      ]
+    },
+    "App.tsx": {
+      "file": "src/App.tsx",
+      "changes": [
+        {
+          "route": "/book",
+          "component": "StudentDashboard",
+          "authRequired": false,
+          "description": "Guest booking page"
+        },
+        {
+          "route": "/admin",
+          "component": "AdminDashboard",
+          "authRequired": true,
+          "role": "ADMIN",
+          "description": "Admin panel (unchanged)"
+        },
+        {
+          "route": "/login",
+          "component": "LoginPage",
+          "authRequired": false,
+          "description": "Admin login only"
+        },
+        {
+          "route": "/",
+          "redirect": "/book",
+          "description": "Default redirect to guest booking"
+        }
+      ]
+    },
+    "StudentDashboard": {
+      "file": "src/pages/StudentDashboard.tsx",
+      "changes": [
+        {
+          "behavior": "Remove ProtectedRoute wrapper",
+          "reason": "Allow guest access"
+        },
+        {
+          "check": "guestData exists?",
+          "ifTrue": "Show booking interface with guest info in header",
+          "ifFalse": "Show GuestForm first"
+        },
+        {
+          "header": {
+            "student": "Show 'Guest: [Name]' with edit button",
+            "authenticated": "Show user registrationNo (backward compatible)"
+          }
+        },
+        {
+          "tabs": {
+            "book": "Always visible",
+            "myBookings": {
+              "guest": "Hide tab",
+              "authenticated": "Show tab"
+            }
+          }
+        }
+      ]
+    },
+    "BookingModal": {
+      "file": "src/components/BookingModal.tsx",
+      "changes": [
+        {
+          "dataSource": "Check userType",
+          "guest": "Use GuestContext data",
+          "authenticated": "Use AuthContext user data"
+        },
+        {
+          "prefill": {
+            "registrationNo": "from guestData or user",
+            "name": "from guestData or user",
+            "phone": "from guestData or user",
+            "email": "from guestData or user",
+            "semester": "from guestData or user"
+          }
+        },
+        {
+          "submission": {
+            "guest": {
+              "registrationNo": "guestData.registrationNo",
+              "applicantName": "guestData.name",
+              "applicantPhone": "guestData.phoneNumber",
+              "applicantEmail": "guestData.email",
+              "applicantSemester": "guestData.semester",
+              "studentId": "undefined"
+            },
+            "authenticated": {
+              "studentId": "user.id",
+              "registrationNo": "user.registrationNo",
+              "applicantName": "user.name (if exists)",
+              "applicantPhone": "user.phoneNumber",
+              "applicantEmail": "user.email",
+              "applicantSemester": "user.semester"
+            }
+          }
+        }
+      ]
+    },
+    "LoginPage": {
+      "file": "src/pages/LoginPage.tsx",
+      "changes": [
+        {
+          "removed": [
+            "Student/Admin toggle",
+            "Student login option",
+            "Student registration link"
+          ]
+        },
+        {
+          "kept": [
+            "Admin login form",
+            "Admin authentication"
+          ]
+        },
+        {
+          "updated": {
+            "title": "PAF-IAST Library - Admin Panel",
+            "description": "Administrator Login",
+            "helperText": "Students can book directly at /book"
+          }
+        }
+      ]
+    },
+    "ProtectedRoute": {
+      "file": "src/components/ProtectedRoute.tsx",
+      "changes": [
+        {
+          "check": "userType === 'GUEST'",
+          "behavior": "Allow access (show children)"
+        },
+        {
+          "check": "user exists",
+          "behavior": "Allow access (authenticated student)"
+        },
+        {
+          "check": "no user and not guest",
+          "behavior": "Redirect to /login"
+        }
+      ]
+    },
+    "api.ts": {
+      "file": "src/lib/api.ts",
+      "changes": [
+        {
+          "function": "bookings.create",
+          "parameter": "data",
+          "type": {
+            "roomId": "string (required)",
+            "studentId": "string (optional - only for authenticated)",
+            "registrationNo": "string (required)",
+            "applicantName": "string (required)",
+            "applicantPhone": "string (required)",
+            "applicantEmail": "string (required)",
+            "applicantSemester": "string (required)",
+            "groupMemberCount": "number (required)",
+            "members": "array (optional)"
+          },
+          "logic": "Determine data source based on auth context"
+        }
+      ]
+    },
+    "api.ts types": {
+      "file": "src/types/api.ts",
+      "changes": [
+        {
+          "new": "interface GuestStudent",
+          "properties": {
+            "registrationNo": "string",
+            "name": "string",
+            "phoneNumber": "string",
+            "email": "string",
+            "semester": "string"
+          }
+        },
+        {
+          "modified": "interface Booking",
+          "changes": [
+            "studentId: optional (was required)",
+            "Add registrationNo: string (for all bookings)"
+          ]
+        }
+      ]
+    },
+    "index.css": {
+      "file": "src/index.css",
+      "additions": [
+        {
+          "class": ".guest-badge",
+          "style": "Display guest status in header",
+          "classes": "px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs"
+        },
+        {
+          "class": ".guest-form",
+          "style": "Guest form container",
+          "classes": "bg-white p-6 rounded-lg shadow-sm"
+        }
+      ]
+    }
+  },
+  "uiFlow": {
+    "guestUser": {
+      "step1": {
+        "url": "/book",
+        "screen": "GuestForm",
+        "description": "Form appears immediately",
+        "fields": "All 5 fields visible",
+        "validation": "Real-time validation"
+      },
+      "step2": {
+        "trigger": "Form submitted successfully",
+        "screen": "BookingInterface",
+        "description": "Calendar and time slots visible",
+        "header": "Shows 'Guest: [Name]' with edit button"
+      },
+      "step3": {
+        "trigger": "User clicks time slot",
+        "screen": "BookingModal",
+        "description": "Modal opens with guest data pre-filled",
+        "dataSource": "GuestContext"
+      },
+      "step4": {
+        "trigger": "Booking submitted",
+        "action": "Clear guest data from context and localStorage",
+        "message": "Success notification",
+        "next": "Return to booking interface (form cleared)"
+      }
+    },
+    "authenticatedStudent": {
+      "step1": {
+        "url": "/student",
+        "screen": "BookingInterface",
+        "description": "Same as before, backward compatible",
+        "header": "Shows user registrationNo"
+      },
+      "step2": {
+        "behavior": "Can also use guest booking if desired"
+      }
+    },
+    "adminUser": {
+      "step1": {
+        "url": "/admin",
+        "screen": "Login required",
+        "description": "Same as before, unchanged"
+      }
+    }
+  },
+  "validationRules": {
+    "registrationNo": {
+      "pattern": "^[0-9]{4}-[A-Z]{2,3}-[0-9]{3,4}$",
+      "example": "2021-CS-123",
+      "message": "Invalid format. Use: 2021-CS-123"
+    },
+    "name": {
+      "minWords": 2,
+      "pattern": "^[a-zA-Z\\s]+$",
+      "message": "Name must contain only letters and spaces, at least 2 words"
+    },
+    "phone": {
+      "pattern": "^\\+92[0-9]{10}$",
+      "example": "+923001234567",
+      "message": "Use Pakistan format: +92XXXXXXXXXX"
+    },
+    "email": {
+      "pattern": "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$",
+      "message": "Invalid email format"
+    },
+    "semester": {
+      "pattern": "^(1st|2nd|3rd|4th|5th|6th|7th|8th|[1-8])$",
+      "message": "Select semester 1st through 8th"
+    }
+  },
+  "accessibility": {
+    "requirements": [
+      "ARIA labels on all form fields",
+      "Error announcements with aria-live",
+      "Keyboard navigation (Tab, Enter, Escape)",
+      "Focus management between form and booking interface",
+      "Screen reader friendly form labels"
+    ]
+  },
+  "testing": {
+    "uiTests": [
+      "GuestForm renders correctly",
+      "Validation messages appear on blur",
+      "Form data persists on refresh",
+      "Edit button allows changing guest data",
+      "Booking modal pre-fills from guest data"
+    ],
+    "integrationTests": [
+      "GuestContext persists data",
+      "Booking uses guest data",
+      "Admin cannot access without login",
+      "Authenticated student can still login"
+    ],
+    "edgeCases": [
+      "User refreshes during booking",
+      "User navigates away and returns",
+      "Guest data cleared after booking",
+      "Invalid form submission blocked"
+    ]
+  },
+  "dependencies": {
+    "packages": [
+      "react-hook-form (already installed)",
+      "zod (already installed)"
+    ],
+    "components": [
+      "Card",
+      "Button",
+      "Input",
+      "Dialog"
+    ]
+  }
+}

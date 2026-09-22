@@ -1,0 +1,230 @@
+================================================================================
+                    PAF-IAST LIBRARY MANAGEMENT SYSTEM
+                        TECHNOLOGY STACK & UI GUIDELINES
+================================================================================
+
+
+================================================================================
+                           1. CORE UI PHILOSOPHY
+================================================================================
+
+The UI is OPERATIONAL, not decorative.
+
+ClickUp succeeds because:
+  → The UI reduces thinking
+  → Everything feels systematic
+  → Users feel IN CONTROL, not impressed
+
+UI REQUIREMENTS:
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  ✓ Information-dense                                                   │
+  │  ✓ Predictable                                                         │
+  │  ✓ Fast                                                                │
+  │  ✓ Configurable                                                        │
+  │  ✓ Data-first design                                                   │
+  │  ✓ Utility-oriented                                                    │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+"Make it usable. Don't make it airy."
+
+
+================================================================================
+                         2. UI STYLE KEYWORDS
+================================================================================
+
+-------------------------------- 2.1 LAYOUT & STRUCTURE ----------------------
+
+
+Panel-Based Architecture
+  → On top (navigation) in middle with shadow below each word, main workspace (content), bottom (context)
+
+Persistent Navigation
+  → Navigation never disappears; muscle memory matters
+
+Hierarchical Information Design
+  → Workspace → Space → Folder → List → Task (ClickUp-style nesting)
+
+Modular Sections
+  → Every UI block behaves like a component, not a page
+
+-------------------------------- 2.2 VISUAL DENSITY -------------------------
+
+High Information Density UI
+Compact Spacing System
+Minimal White Space (Functional Only)
+Data-First Design
+Utility-Oriented UI
+
+-------------------------------- 2.3 INTERACTION & BEHAVIOR -----------------
+
+Contextual Actions
+  → Actions appear only when relevant (hover, select, focus)
+
+Inline Editing
+  → Edit without modals wherever possible
+
+Progressive Disclosure
+  → Show basics first, advanced options on demand
+
+Zero-Reload Interactions
+  → Everything feels instant
+
+State-Aware UI
+  → Loading, empty, error, success states are clearly defined
+
+-------------------------------- 2.4 COMPONENT-LEVEL ------------------------
+
+Command Palette (⌘K Style)
+Sortable & Filterable Tables
+Draggable Lists
+Multi-Select Actions
+Smart Dropdowns
+Sticky Headers
+Resizable Columns
+Toggle-Based Settings
+
+
+================================================================================
+                     3. COLOR, TYPOGRAPHY & VISUAL LANGUAGE
+================================================================================
+
+-------------------------------- 3.1 COLOR SYSTEM ---------------------------
+
+Neutral-Dominant Palette
+Accent-Driven Actions
+Semantic Colors:
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  GREEN  → Success, Active, Available                                     │
+  │  YELLOW → Warning, Pending, Queue                                        │
+  │  RED    → Error, Destructive, Rejected                                   │
+  │  BLUE   → Primary action, Info, Approved                                 │
+  │  GRAY   → Disabled, Inactive, Expired                                    │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+No gradients everywhere. Keep them controlled.
+
+-------------------------------- 3.2 TYPOGRAPHY -----------------------------
+
+System-Friendly Sans Serif
+Clear Hierarchy (H1–H6)
+Readable at Small Sizes
+Tabular Numerals for Data
+
+Recommended Fonts:
+  • Inter
+  • SF Pro (Apple-like feel)
+  • Roboto (safe enterprise)
+
+
+================================================================================
+                      4. UX PATTERNS (CLICKUP DNA)
+================================================================================
+
+Empty State Education
+  → Empty screens teach users what to do next
+
+Onboarding via UI, not Tutorials
+  → Tooltips, highlights, nudges
+
+Keyboard-First Experience
+  → Power users matter
+
+Saved Views
+  → Users don't want one fixed layout
+
+Permission-Based UI
+  → What I see depends on my role
+
+
+================================================================================
+                         5. TECHNOLOGY STACK
+================================================================================
+
+-------------------------------- 5.1 FRONTEND -------------------------------
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           CORE                                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  React (Functional Components)                                              │
+│  TypeScript (mandatory for SaaS)                                            │
+│  Vite or Next.js (App Router preferred)
+ Frontend Dev Server:
+  - Port: 3000
+  - Proxy: /api -> http://localhost:3001 (backend)                                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        UI & STYLING                                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Tailwind CSS (utility-first, scalable)                                     │
+│  Headless UI or Radix UI (accessible components)                            │
+│  CSS Variables for theming                                                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      STATE MANAGEMENT                                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  React Query / TanStack Query (server state)                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      UX ENHANCEMENTS                                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Framer Motion (micro-interactions)                                         │
+│  React Hook Form (forms at scale)                                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+-------------------------------- 5.2 BACKEND & DATABASE ----------------------
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           DATABASE                                           │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  sqlite3 (best for SaaS)                                                 │
+│    - Strong relations                                                       │
+│    - Indexing                                                               │
+│    - JSONB when flexibility is needed                                       │
+│                                                                             │
+│  ORM                                                                       │
+│    - Prisma (clean schema, type-safe, recommended)                                       │
+│    OR                                                                       │
+│    - TypeORM (if you want more control)                                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           BACKEND                                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Node.js (Express / Fastify)                                                │
+│  REST API (simpler initially)                                               │
+│  JWT Authentication        
+│  Backend Server:
+│    - Port: 3001 (default, configurable via PORT env var)
+│    - Health Check: http://localhost:3001/api/health
+│    - Debug Endpoint: http://localhost:3001/api/debug/config 
+│  
+│
+└─────────────────────────────────────────────────────────────────────────────┘
+
+-------------------------------- 5.3 ARCHITECTURE KEYWORDS -------------------
+
+Component-Based Frontend Architecture
+API-Driven UI
+Normalized Relational Schema
+Role-Based Access Control (RBAC)
+Scalable Multi-Tenant Design
+
+
+================================================================================
+                     6. BRIEFING DESIGNERS & DEVELOPERS
+================================================================================
+
+Use this sentence internally:
+
+"We're building a ClickUp-inspired, dashboard-driven SaaS with high information
+density, panel-based navigation, inline editing, and a React + sqlite3
+architecture optimized for speed and scale."
+
+
+================================================================================
+                              END OF DOCUMENT
+================================================================================

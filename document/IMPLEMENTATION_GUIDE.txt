@@ -1,0 +1,523 @@
+================================================================================
+STUDENT AUTHENTICATION REMOVAL - IMPLEMENTATION GUIDE
+================================================================================
+
+OBJECTIVE
+---------
+Remove student login functionality while keeping admin authentication intact.
+Students will book rooms without creating accounts or logging in.
+
+================================================================================
+STEP-BY-STEP IMPLEMENTATION
+================================================================================
+
+STEP 1: CREATE GUEST CONTEXT
+----------------------------
+File: src/contexts/GuestContext.tsx
+
+Purpose: Store temporary student details during guest booking session
+
+Implementation:
+- Create new context for guest student data
+- Store: registrationNo, name, phone, email, semester
+- Provide form validation
+- Persist to localStorage for session recovery
+
+Key Methods:
+- setGuestStudent(data)
+- getGuestStudent()
+- clearGuestStudent()
+- validateGuestData()
+
+================================================================================
+
+STEP 2: CREATE GUEST FORM COMPONENT
+-----------------------------------
+File: src/components/GuestForm.tsx
+
+Purpose: Collect student details from guest users
+
+Implementation:
+- Form with fields: registrationNo, name, phone, email, semester
+- Use react-hook-form + zod validation
+- Auto-save to localStorage
+- Next button to proceed to booking
+
+Validation Rules:
+- registrationNo: required, format validation
+- name: required, min 2 chars
+- phone: required, Pakistan phone format
+- email: required, email format
+- semester: required
+
+================================================================================
+
+STEP 3: REFACTOR AUTH CONTEXT
+-----------------------------
+File: src/contexts/AuthContext.tsx
+
+Changes:
+1. Add userType: 'GUEST' | 'STUDENT' | 'ADMIN'
+2. Support guest state alongside authenticated state
+3. Modify login() to accept userType
+4. Add isGuest() helper method
+5. Update logout() to handle guest clearing
+
+New State Structure:
+{
+  user: Student | null,
+  token: string | null,
+  userType: 'GUEST' | 'STUDENT' | 'ADMIN',
+  isAuthenticated: boolean,
+  isAdmin: boolean,
+  isGuest: boolean
+}
+
+================================================================================
+
+STEP 4: UPDATE ROUTING STRUCTURE
+---------------------------------
+File: src/App.tsx
+
+Changes:
+1. New route: /book -> StudentDashboard (no auth required)
+2. Keep: /admin -> AdminRoute + AdminDashboard (admin auth required)
+3. Redirect: / -> /book (instead of /login)
+4. Update navigation logic
+
+Routes Configuration:
+/book -> StudentDashboard (guest access)
+/admin -> AdminRoute (admin only)
+/login -> LoginPage (admin only, hide student option)
+
+================================================================================
+
+STEP 5: MODIFY STUDENT DASHBOARD
+---------------------------------
+File: src/pages/StudentDashboard.tsx
+
+Changes:
+1. Import GuestContext
+2. Check if guest data exists
+3. If not guest data -> show GuestForm
+4. If guest data -> show booking interface
+5. Add "Change Student Details" button
+6. Remove auth requirement from protected route
+
+Component Structure:
+┌─ Header (Guest: [Name] [Edit])
+├─ Tab 1: Book Room
+│  ├─ GuestForm (if no data)
+│  └─ Calendar + TimeSlotGrid (if data exists)
+└─ Tab 2: My Bookings (hidden for guests)
+
+================================================================================
+
+STEP 6: UPDATE BOOKING MODAL
+-----------------------------
+File: src/components/BookingModal.tsx
+
+Changes:
+1. Use guest student data if available
+2. Remove auth-dependent fields
+3. Add validation for guest data
+4. Update submission payload
+
+Booking Submission Data:
+{
+  // Use guest data OR authenticated user data
+  roomId: string,
+  studentId?: string, // Only if authenticated
+  registrationNo: string, // From guest form
+  applicantName: string, // From guest form
+  applicantPhone: string, // From guest form
+  applicantEmail: string, // From guest form
+  applicantSemester: string, // From guest form
+  groupMemberCount: number,
+  members: { name: string, registrationNo: string }[]
+}
+
+================================================================================
+
+STEP 7: UPDATE API CLIENT
+-------------------------
+File: src/lib/api.ts
+
+Changes:
+1. Update booking.create() to accept guest data
+2. Remove student auth requirement
+3. Keep admin authentication
+4. Update error handling
+
+API Call Structure:
+export const bookings = {
+  create: async (data: {
+    roomId: string,
+    // Guest data OR authenticated user
+    studentId?: string,
+    registrationNo: string,
+    applicantName: string,
+    applicantPhone: string,
+    applicantEmail: string,
+    applicantSemester: string,
+    groupMemberCount: number,
+    members?: { name: string, registrationNo: string }[]
+  }) => {
+    // Use authenticated user data OR guest data
+    const payload = {
+      roomId,
+      // If authenticated: use user data
+      // If guest: use form data
+      ...data
+    };
+    return apiClient.post('/bookings', payload);
+  }
+}
+
+================================================================================
+
+STEP 8: UPDATE TYPES
+--------------------
+File: src/types/api.ts
+
+Changes:
+1. Update Booking type to include guest fields
+2. Make studentId optional
+3. Add GuestStudent type
+4. Update BookingFormData
+
+New Types:
+interface GuestStudent {
+  registrationNo: string;
+  name: string;
+  phoneNumber: string;
+  email: string;
+  semester: string;
+}
+
+interface Booking {
+  id: string;
+  studentId?: string; // Optional for guests
+  registrationNo: string; // For all bookings
+  applicantName: string;
+  applicantPhone: string;
+  applicantEmail: string;
+  applicantSemester: string;
+  // ... other fields
+}
+
+================================================================================
+
+STEP 9: UPDATE LOGIN PAGE
+--------------------------
+File: src/pages/LoginPage.tsx
+
+Changes:
+1. Remove student login toggle
+2. Keep only admin login
+3. Update title and description
+4. Hide student registration option
+5. Update route redirect logic
+
+Login Page UI:
+┌─────────────────────────────────────┐
+│ PAF-IAST Library                    │
+│ Room Booking System                 │
+│                                     │
+│ Admin Login                         │
+│ ┌─────────────────────────────────┐ │
+│ │ Registration Number: [_______]  │ │
+│ │ Password: [____________]         │ │
+│ │                                 │ │
+│ │         [Login as Admin]        │ │
+│ └─────────────────────────────────┘ │
+│                                     │
+│ Students: Book directly at /book    │
+└─────────────────────────────────────┘
+
+================================================================================
+
+STEP 10: UPDATE PROTECTED ROUTE
+--------------------------------
+File: src/components/ProtectedRoute.tsx
+
+Changes:
+1. Allow guest access
+2. Only require auth for admin routes
+3. Redirect guests to /book if needed
+
+Implementation:
+const ProtectedRoute = ({ children }) => {
+  const { user, userType } = useAuth();
+
+  // Allow guests to access student pages
+  if (userType === 'GUEST') {
+    return <>{children}</>;
+  }
+
+  // Require auth for authenticated users
+  if (!user) {
+    return <Navigate to="/book" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+================================================================================
+
+STEP 11: UPDATE ADMIN ROUTE
+----------------------------
+File: src/components/AdminRoute.tsx
+
+Changes:
+- No changes needed
+- Keep existing admin-only logic
+- Ensure admin authentication required
+
+================================================================================
+
+STEP 12: UPDATE HOOKS
+-----------------------
+File: src/hooks/useAuthErrorHandler.ts
+
+Changes:
+1. Update to handle guest state
+2. Don't logout guests on errors
+3. Only handle admin auth errors
+
+Implementation:
+const useAuthErrorHandler = () => {
+  const { userType } = useAuth();
+
+  const handleAuthError = (error) => {
+    // Only handle errors for authenticated users
+    if (userType !== 'GUEST' && error?.name === 'AuthError') {
+      logout();
+      navigate('/login');
+      return true;
+    }
+    return false;
+  };
+
+  return { handleAuthError };
+};
+
+================================================================================
+
+STEP 13: UPDATE INDEX.CSS
+--------------------------
+File: src/index.css
+
+Changes:
+- Add styles for guest indicator
+- Add styles for guest form
+- Ensure consistency with existing design
+
+================================================================================
+
+TESTING CHECKLIST
+==================
+
+Guest Booking Flow:
+[ ] Visit /book without login
+[ ] See "Book Study Room" header
+[ ] GuestForm appears automatically
+[ ] Fill all student details
+[ ] Click "Continue"
+[ ] See calendar and time slots
+[ ] Select date and time
+[ ] Click available time slot
+[ ] BookingModal opens
+[ ] Add group members (optional)
+[ ] Submit booking
+[ ] See success message
+[ ] Booking appears in queue
+
+Admin Flow:
+[ ] Visit /admin
+[ ] Redirected to login
+[ ] Login as admin
+[ ] See admin dashboard
+[ ] View guest bookings
+[ ] Approve/reject bookings
+[ ] Logout works
+
+Edge Cases:
+[ ] Refresh page during guest booking
+[ ] Navigate away and return
+[ ] Try to book without filling form
+[ ] Enter invalid data
+[ ] Network error during booking
+[ ] Duplicate booking attempt
+
+================================================================================
+
+VALIDATION RULES
+=================
+
+Registration Number:
+- Required
+- Format: YYYY-DEPT-XXX (e.g., 2021-CS-123)
+- Length: 8-15 characters
+- Alphanumeric only
+
+Name:
+- Required
+- Minimum 2 words
+- Letters and spaces only
+- No special characters
+
+Phone Number:
+- Required
+- Pakistan format: +92XXXXXXXXXX
+- 11-15 digits
+
+Email:
+- Required
+- Valid email format
+- Student email preferred
+
+Semester:
+- Required
+- Format: 1st, 2nd, 3rd, 4th, etc.
+- Or: 1, 2, 3, 4, etc.
+
+================================================================================
+
+BACKWARDS COMPATIBILITY
+=======================
+
+Existing Authenticated Students:
+- Can still login
+- See existing booking history
+- Can use new guest booking too
+- No breaking changes
+
+Admin Dashboard:
+- Shows all bookings (guest + authenticated)
+- Filter by registration number
+- Search functionality works
+- No changes to approval flow
+
+================================================================================
+
+PERFORMANCE CONSIDERATIONS
+==========================
+
+1. localStorage Usage:
+   - Store guest data in localStorage
+   - Clear on successful booking
+   - Clear on logout
+
+2. Form Validation:
+   - Client-side validation first
+   - Debounce input validation
+   - Show errors immediately
+
+3. API Calls:
+   - Remove unnecessary auth headers for guest bookings
+   - Add guest data to booking payload
+   - Optimize for guest flow
+
+================================================================================
+
+ACCESSIBILITY REQUIREMENTS
+==========================
+
+1. Form Fields:
+   - Proper labels
+   - ARIA attributes
+   - Error announcements
+   - Focus management
+
+2. Keyboard Navigation:
+   - Tab order
+   - Enter to submit
+   - Escape to cancel
+
+3. Screen Readers:
+   - Announce form errors
+   - Describe required fields
+   - Announce success messages
+
+================================================================================
+
+SECURITY CONSIDERATIONS
+========================
+
+1. Data Validation:
+   - Client-side validation
+   - Server-side validation (backend)
+   - Sanitize all inputs
+
+2. XSS Prevention:
+   - Escape user input
+   - Don't render raw data
+   - Use textContent, not innerHTML
+
+3. CSRF Protection:
+   - Backend handles CSRF
+   - Don't store sensitive data
+   - Use HTTPS in production
+
+================================================================================
+
+ERROR HANDLING
+===============
+
+1. Form Errors:
+   - Show inline error messages
+   - Prevent submission
+   - Highlight invalid fields
+
+2. API Errors:
+   - Catch network errors
+   - Show user-friendly messages
+   - Log errors for debugging
+
+3. Validation Errors:
+   - Real-time validation
+   - Prevent bad data submission
+   - Clear error on correction
+
+================================================================================
+
+DEPLOYMENT NOTES
+================
+
+1. Backend Requirements:
+   - Update booking endpoint to accept guest data
+   - Store student details in booking document
+   - Link by registration number
+
+2. Database Schema:
+   - Add guest fields to booking collection
+   - Index on registration number
+   - Consider duplicate prevention
+
+3. Environment Variables:
+   - API_BASE_URL
+   - No changes needed for frontend
+
+================================================================================
+
+ROLLBACK PLAN
+==============
+
+If issues arise:
+
+1. Restore AuthContext backup
+2. Restore LoginPage with student option
+3. Restore ProtectedRoute logic
+4. Remove GuestContext
+5. Test authenticated flow
+
+Backup Files:
+- Create backup of AuthContext.tsx
+- Create backup of LoginPage.tsx
+- Create backup of StudentDashboard.tsx
+- Document original API calls
+
+================================================================================
+END OF IMPLEMENTATION GUIDE
+================================================================================

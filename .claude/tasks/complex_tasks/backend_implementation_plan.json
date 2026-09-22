@@ -1,0 +1,509 @@
+{
+  "phase": "backend_implementation",
+  "objective": "Complete backend implementation with all APIs, database, and business logic",
+  "directory_structure": {
+    "root": "/backend",
+    "subdirectories": [
+      "/src",
+      "/src/routes",
+      "/src/middleware",
+      "/src/controllers",
+      "/src/services",
+      "/src/utils",
+      "/prisma",
+      "/tests"
+    ]
+  },
+  "step_by_step_plan": [
+    {
+      "step": 1,
+      "name": "Initialize Backend Project",
+      "estimated_hours": 1,
+      "actions": [
+        "Create package.json with project metadata",
+        "Install dependencies: express, cors, dotenv, bcryptjs, jsonwebtoken, zod",
+        "Install devDependencies: typescript, @types/node, @types/express, ts-node, nodemon",
+        "Create tsconfig.json with ES2020 target",
+        "Create .env file with environment variables",
+        "Create .gitignore file",
+        "Create nodemon.json for development"
+      ],
+      "deliverables": [
+        "package.json",
+        "tsconfig.json",
+        ".env",
+        "nodemon.json"
+      ],
+      "commands": [
+        "npm init -y",
+        "npm install express cors dotenv bcryptjs jsonwebtoken zod",
+        "npm install -D typescript @types/node @types/express ts-node nodemon",
+        "npx tsc --init"
+      ]
+    },
+    {
+      "step": 2,
+      "name": "Setup Prisma ORM",
+      "estimated_hours": 1,
+      "actions": [
+        "Initialize Prisma with SQLite provider",
+        "Create Prisma schema file",
+        "Generate Prisma client",
+        "Create database connection utility",
+        "Create seed script for initial data"
+      ],
+      "deliverables": [
+        "prisma/schema.prisma",
+        "prisma/client",
+        "src/config/database.ts",
+        "prisma/seed.ts"
+      ],
+      "commands": [
+        "npx prisma init",
+        "npm install @prisma/client",
+        "npm install -D prisma",
+        "npx prisma generate",
+        "npx prisma migrate dev --name init"
+      ]
+    },
+    {
+      "step": 3,
+      "name": "Create Database Schema",
+      "estimated_hours": 2,
+      "actions": [
+        "Define Room model with all fields and relationships",
+        "Define Student model with authentication fields",
+        "Define Booking model with status tracking",
+        "Define Member model for group members",
+        "Add enums for status fields",
+        "Add indexes for performance",
+        "Add unique constraints",
+        "Run migration to create database"
+      ],
+      "deliverables": [
+        "Complete schema.prisma file",
+        "Generated TypeScript types",
+        "Database tables created"
+      ],
+      "validation": [
+        "Verify all relationships are correct",
+        "Check all indexes are created",
+        "Ensure unique constraints work"
+      ]
+    },
+    {
+      "step": 4,
+      "name": "Create Core Server Setup",
+      "estimated_hours": 1,
+      "actions": [
+        "Create main Express server file (src/app.ts)",
+        "Create server entry point (src/server.ts)",
+        "Setup CORS configuration",
+        "Setup global error handler",
+        "Create health check endpoint",
+        "Test server starts without errors"
+      ],
+      "deliverables": [
+        "src/app.ts",
+        "src/server.ts",
+        "src/middleware/errorHandler.ts"
+      ],
+      "commands": [
+        "npm run dev (to test)"
+      ]
+    },
+    {
+      "step": 5,
+      "name": "Implement Authentication Middleware",
+      "estimated_hours": 2,
+      "actions": [
+        "Create JWT token utilities (sign, verify, decode)",
+        "Create auth middleware to verify JWT tokens",
+        "Create role-based middleware (admin check)",
+        "Create request validation middleware",
+        "Add TypeScript types for JWT payloads",
+        "Test token verification"
+      ],
+      "deliverables": [
+        "src/utils/jwt.ts",
+        "src/middleware/auth.ts",
+        "src/middleware/roles.ts",
+        "src/middleware/validate.ts"
+      ]
+    },
+    {
+      "step": 6,
+      "name": "Create Authentication Routes",
+      "estimated_hours": 3,
+      "actions": [
+        "Create auth controller with login logic",
+        "Create auth controller with register logic",
+        "Create auth controller with admin login",
+        "Hash passwords using bcrypt",
+        "Generate JWT tokens on successful login",
+        "Validate input using Zod schemas",
+        "Add proper error handling"
+      ],
+      "deliverables": [
+        "src/controllers/authController.ts",
+        "src/routes/auth.ts",
+        "src/schemas/authSchema.ts"
+      ]
+    },
+    {
+      "step": 7,
+      "name": "Create Room Management APIs",
+      "estimated_hours": 2,
+      "actions": [
+        "Create room controller with GET all rooms logic",
+        "Create room controller with GET room by ID",
+        "Create room controller with GET availability",
+        "Implement date filtering",
+        "Add proper error handling",
+        "Add input validation"
+      ],
+      "deliverables": [
+        "src/controllers/roomController.ts",
+        "src/routes/rooms.ts",
+        "src/schemas/roomSchema.ts",
+        "src/services/roomService.ts"
+      ]
+    },
+    {
+      "step": 8,
+      "name": "Implement Booking Service Layer",
+      "estimated_hours": 3,
+      "actions": [
+        "Create booking service with create logic",
+        "Implement queue position calculation",
+        "Implement one-booking-per-day check",
+        "Implement working days validation",
+        "Implement concurrent booking protection",
+        "Add transaction handling"
+      ],
+      "deliverables": [
+        "src/services/bookingService.ts",
+        "src/utils/validation.ts",
+        "src/utils/queue.ts"
+      ]
+    },
+    {
+      "step": 9,
+      "name": "Create Booking Management APIs",
+      "estimated_hours": 3,
+      "actions": [
+        "Create booking controller with POST /bookings",
+        "Create booking controller with GET /bookings/my",
+        "Create booking controller with PUT /bookings/:id",
+        "Create booking controller with DELETE /bookings/:id",
+        "Add role-based access control",
+        "Add input validation",
+        "Test all endpoints"
+      ],
+      "deliverables": [
+        "src/controllers/bookingController.ts",
+        "src/routes/bookings.ts",
+        "src/schemas/bookingSchema.ts"
+      ]
+    },
+    {
+      "step": 10,
+      "name": "Implement Queue System",
+      "estimated_hours": 3,
+      "actions": [
+        "Create queue controller with GET queue status",
+        "Implement FIFO queue logic",
+        "Implement queue position updates",
+        "Handle max queue limit (5 people)",
+        "Handle queue auto-movement on rejection",
+        "Test queue calculations"
+      ],
+      "deliverables": [
+        "src/controllers/queueController.ts",
+        "src/routes/queue.ts",
+        "src/utils/queueLogic.ts"
+      ]
+    },
+    {
+      "step": 11,
+      "name": "Create Admin Approval System",
+      "estimated_hours": 3,
+      "actions": [
+        "Create admin controller with approve booking",
+        "Create admin controller with reject booking",
+        "Implement queue auto-movement on approval/rejection",
+        "Add bulk approval capability",
+        "Add admin-only route protection",
+        "Test approval workflow"
+      ],
+      "deliverables": [
+        "src/controllers/adminController.ts",
+        "src/routes/admin.ts",
+        "src/services/adminService.ts"
+      ]
+    },
+    {
+      "step": 12,
+      "name": "Implement Student APIs",
+      "estimated_hours": 2,
+      "actions": [
+        "Create student controller with GET all students",
+        "Create student controller with GET student details",
+        "Create student controller with GET group members",
+        "Add admin-only access control",
+        "Add input validation"
+      ],
+      "deliverables": [
+        "src/controllers/studentController.ts",
+        "src/routes/students.ts",
+        "src/schemas/studentSchema.ts"
+      ]
+    },
+    {
+      "step": 13,
+      "name": "Add Business Logic Validation",
+      "estimated_hours": 2,
+      "actions": [
+        "Implement working days validation (Mon-Fri only)",
+        "Implement next 3 working days logic",
+        "Implement one booking per day per student",
+        "Implement time slot validation",
+        "Add comprehensive error messages",
+        "Test all validation rules"
+      ],
+      "deliverables": [
+        "src/utils/businessRules.ts",
+        "src/utils/dateHelpers.ts"
+      ]
+    },
+    {
+      "step": 14,
+      "name": "Add Error Handling System",
+      "estimated_hours": 1,
+      "actions": [
+        "Create custom error classes",
+        "Implement error codes system",
+        "Add error logging",
+        "Create consistent error response format",
+        "Handle Prisma errors",
+        "Test error scenarios"
+      ],
+      "deliverables": [
+        "src/utils/errors.ts",
+        "src/middleware/errorHandler.ts"
+      ]
+    },
+    {
+      "step": 15,
+      "name": "Write API Integration Tests",
+      "estimated_hours": 3,
+      "actions": [
+        "Setup Jest testing framework",
+        "Create test database setup/teardown",
+        "Write tests for authentication endpoints",
+        "Write tests for booking endpoints",
+        "Write tests for queue endpoints",
+        "Write tests for admin endpoints",
+        "Ensure >80% test coverage"
+      ],
+      "deliverables": [
+        "tests/auth.test.ts",
+        "tests/bookings.test.ts",
+        "tests/queue.test.ts",
+        "tests/admin.test.ts",
+        "jest.config.js",
+        "package.json test scripts"
+      ]
+    },
+    {
+      "step": 16,
+      "name": "Add Sample Data Seeder",
+      "estimated_hours": 1,
+      "actions": [
+        "Create seed script with admin user",
+        "Create seed script with sample students",
+        "Create seed script with room data",
+        "Create seed script with sample bookings",
+        "Make seed script executable via npm"
+      ],
+      "deliverables": [
+        "prisma/seed.ts",
+        "package.json seed script"
+      ]
+    },
+    {
+      "step": 17,
+      "name": "Final Testing & Validation",
+      "estimated_hours": 2,
+      "actions": [
+        "Test all API endpoints manually",
+        "Run all integration tests",
+        "Test authentication flow",
+        "Test booking flow",
+        "Test admin approval flow",
+        "Verify error handling",
+        "Check API documentation"
+      ],
+      "deliverables": [
+        "Complete API documentation",
+        "Test results report",
+        "Verified working system"
+      ]
+    }
+  ],
+  "total_estimated_hours": 36,
+  "critical_path": [
+    "Step 1 → Step 2 → Step 3 → Step 4 → Step 5 → Step 6 → Step 8 → Step 9 → Step 10 → Step 11 → Step 15 → Step 17"
+  ],
+  "parallel_execution": {
+    "note": "Some steps can be done in parallel after dependencies are met",
+    "parallel_groups": [
+      {
+        "name": "Controllers & Routes",
+        "steps": ["Step 6", "Step 7", "Step 9", "Step 10", "Step 11", "Step 12"],
+        "note": "Can be developed after Step 5 (middleware) is complete"
+      },
+      {
+        "name": "Testing & Documentation",
+        "steps": ["Step 15", "Step 16"],
+        "note": "Can be done while implementing APIs"
+      }
+    ]
+  },
+  "file_structure": {
+    "src": {
+      "app.ts": "Express app configuration",
+      "server.ts": "Server entry point",
+      "controllers": {
+        "authController.ts": "Authentication logic",
+        "roomController.ts": "Room management",
+        "bookingController.ts": "Booking CRUD operations",
+        "queueController.ts": "Queue management",
+        "adminController.ts": "Admin approval logic",
+        "studentController.ts": "Student management"
+      },
+      "routes": {
+        "auth.ts": "Authentication routes",
+        "rooms.ts": "Room routes",
+        "bookings.ts": "Booking routes",
+        "queue.ts": "Queue routes",
+        "admin.ts": "Admin routes",
+        "students.ts": "Student routes"
+      },
+      "services": {
+        "bookingService.ts": "Booking business logic",
+        "adminService.ts": "Admin operations",
+        "roomService.ts": "Room operations"
+      },
+      "middleware": {
+        "auth.ts": "JWT authentication middleware",
+        "roles.ts": "Role-based access control",
+        "validate.ts": "Input validation middleware",
+        "errorHandler.ts": "Global error handler"
+      },
+      "utils": {
+        "jwt.ts": "JWT utilities",
+        "validation.ts": "Validation helpers",
+        "queue.ts": "Queue logic",
+        "businessRules.ts": "Business rule validation",
+        "dateHelpers.ts": "Date manipulation helpers",
+        "errors.ts": "Custom error classes"
+      },
+      "schemas": {
+        "authSchema.ts": "Authentication validation schemas",
+        "roomSchema.ts": "Room validation schemas",
+        "bookingSchema.ts": "Booking validation schemas",
+        "studentSchema.ts": "Student validation schemas"
+      },
+      "config": {
+        "database.ts": "Database connection"
+      }
+    },
+    "prisma": {
+      "schema.prisma": "Database schema",
+      "seed.ts": "Sample data seeder"
+    },
+    "tests": {
+      "auth.test.ts": "Auth endpoint tests",
+      "bookings.test.ts": "Booking endpoint tests",
+      "queue.test.ts": "Queue endpoint tests",
+      "admin.test.ts": "Admin endpoint tests",
+      "setup.ts": "Test setup and teardown"
+    },
+    "root": {
+      "package.json": "Project dependencies",
+      "tsconfig.json": "TypeScript configuration",
+      ".env": "Environment variables",
+      "nodemon.json": "Development server config",
+      "jest.config.js": "Jest testing config"
+    }
+  },
+  "api_endpoints_to_create": {
+    "authentication": [
+      "POST /api/v1/auth/login",
+      "POST /api/v1/auth/register",
+      "POST /api/v1/auth/admin/login"
+    ],
+    "rooms": [
+      "GET /api/v1/rooms",
+      "GET /api/v1/rooms/:id",
+      "GET /api/v1/rooms/:id/availability"
+    ],
+    "bookings": [
+      "GET /api/v1/bookings",
+      "GET /api/v1/bookings/my",
+      "GET /api/v1/bookings/date/:date",
+      "POST /api/v1/bookings",
+      "PUT /api/v1/bookings/:id",
+      "DELETE /api/v1/bookings/:id"
+    ],
+    "admin": [
+      "PUT /api/v1/bookings/:id/approve",
+      "PUT /api/v1/bookings/:id/reject"
+    ],
+    "queue": [
+      "GET /api/v1/queue/:roomId/:date/:timeSlot",
+      "POST /api/v1/queue/join",
+      "POST /api/v1/queue/leave"
+    ],
+    "students": [
+      "GET /api/v1/students",
+      "GET /api/v1/students/:id",
+      "GET /api/v1/students/:id/members"
+    ]
+  },
+  "testing_requirements": {
+    "unit_tests": [
+      "Business logic validation",
+      "Queue calculation logic",
+      "Date validation helpers",
+      "JWT utilities"
+    ],
+    "integration_tests": [
+      "Authentication flow",
+      "Student booking flow",
+      "Admin approval flow",
+      "Queue management flow",
+      "Error handling"
+    ],
+    "test_coverage": "Minimum 80% code coverage"
+  },
+  "environment_variables": {
+    "DATABASE_URL": "SQLite database file path",
+    "JWT_SECRET": "Secret key for JWT tokens",
+    "JWT_EXPIRATION": "Token expiration time (e.g., 7d)",
+    "PORT": "Server port (default: 3001)",
+    "NODE_ENV": "Environment (development/production)"
+  },
+  "success_criteria": [
+    "All API endpoints return correct responses",
+    "Authentication works for student and admin roles",
+    "Queue system correctly manages FIFO with max 5 limit",
+    "Working days validation prevents weekend bookings",
+    "One booking per day rule is enforced",
+    "Database transactions prevent concurrent booking conflicts",
+    "Error handling provides meaningful error messages",
+    "All tests pass with >80% coverage",
+    "API documentation is complete and accurate"
+  ]
+}

@@ -1,0 +1,123 @@
+🎯 Repeatable Template for Future Features
+
+  Process Flow
+
+  Documentation Research
+      ↓
+  Structured JSON Planning
+      ↓
+  Backend-First Implementation
+      ↓
+  UI Specification Review ← CRITICAL STEP - USER FEEDBACK LOOP
+      ↓
+  Question-Driven Clarification ← ENSURE COMPLETE UNDERSTANDING
+      ↓
+  Frontend Implementation
+      ↓
+  End-to-End Testing
+
+  Each Step Produces:
+
+1. Error Reproduction → Steps to reproduce + error details
+2. Root Cause Analysis → Analysis document with:
+   - Failing component/file
+   - Error stack trace
+   - Related code sections
+   - Potential causes
+3. Impact Assessment → Scope document:
+   - Files affected
+   - User impact
+   - Severity level
+4. Fix Strategy → Minimal change plan
+5. Question-Driven Clarification → Verified root cause
+6. Implementation → Applied fix
+7. E2E Testing → Verified solution
+
+### Flow-Path 2: Error Diagnosis & Fix
+**When to use:** Bug fixing, error resolution, breaking changes, broken functionality
+
+### Process Flow
+
+**Error Reproduction**
+  ↓
+  Root Cause Analysis (Stack traces, logs, failing tests)
+  ↓
+  Impact Assessment (Scope of problem, affected components)
+  ↓
+  Fix Strategy ← CRITICAL STEP - DETERMINE MINIMAL CHANGE
+  ↓
+  Question-Driven Clarification ← ENSURE ROOT CAUSE IDENTIFIED
+  ↓
+  Implementation (Targeted fix, no over-engineering)
+  ↓
+  End-to-End Testing (Verify fix works, no regressions)
+
+### Critical Success Factors:
+
+- ✅ Reproduce the error first
+- ✅ Read error messages carefully
+- ✅ Check browser console/network tab
+- ✅ Use systematic debugging (binary search in code)
+- ✅ Fix the ROOT CAUSE, not symptoms
+- ✅ Make MINIMAL changes (don't refactor while fixing)
+- ✅ Test the exact scenario that was broken
+- ✅ Verify no new errors introduced
+
+### Tools to Use:
+- **Browser Console**: Check for JavaScript errors
+- **Network Tab**: Inspect API calls and responses
+- **Read**: Examine error stack traces and failing code
+- **Grep**: Search for related code patterns
+- **Bash**: Run tests and check logs
+
+### What to Document:
+1. **Error Message**: Exact text of the error
+2. **Reproduction Steps**: Step-by-step guide to trigger the error
+3. **Stack Trace**: Full error call stack
+4. **Failing Component**: Which file/component is broken
+5. **Root Cause**: Why the error occurs
+6. **Affected Files**: All files that need changes
+7. **Fix Applied**: What was changed and why
+8. **Test Results**: Verification that fix works
+
+### Common Error Types:
+1. **JSX/Parse Errors**: Unclosed tags, invalid syntax
+2. **API Errors**: Failed network requests, wrong data format
+3. **State Errors**: Incorrect state updates, undefined variables
+4. **Prop Errors**: Missing props, type mismatches
+5. **Lifecycle Errors**: useEffect dependencies, memory leaks
+6. **Routing Errors**: Missing routes, navigation failures
+
+### Template for Next Error:
+
+1. Reproduce the error with clear steps
+2. Analyze root cause systematically
+3. Assess impact and scope
+4. Design minimal fix strategy
+5. Verify root cause with questions
+6. Implement targeted fix
+7. Test end-to-end (original error + no regressions)
+
+example:
+Search and analyze the day completion flow in this codebase. I need to understand:
+
+1. Where day completion is triggered (likely ActionPlanTab when 24 profiles are completed - 8 in each of 3 slots)
+2. How the completion status propagates from backend to frontend
+3. What should happen in the UI when a day is completed:
+   - "Day Completed" badge should appear
+   - Day should become read-only
+   - Next day should unlock
+   - Tabs should become disabled
+
+Focus on:
+- ActionPlanTab.jsx - where profiles are completed
+- How onCompleteDay is called and what it does
+- How state flows from EventPage → DayView → ActionPlanTab
+- Why the frontend might not be updating after backend success
+
+Search thoroughly - look at all relevant files including:
+- frontend/src/components/Tabs/ActionPlanTab.jsx
+- frontend/src/pages/EventPage.jsx
+- frontend/src/components/DayView/DayView.jsx
+- Any API calls related to day completion
+- State management for day completion 

@@ -1,0 +1,10 @@
+Explore using claude_deepcode analysis codebase in system_docs claude-code --deep-code 
+
+In Claude Code, the command for deep document analysis is:
+bashclaude-code --deep-docs
+
+
+check the apis calling functionlity is good,because each api required specific parameters and methods also response handling in case of success and 
+failure. read and map funcionlity: @.claude\apis_response.md 
+
+Make UI more details

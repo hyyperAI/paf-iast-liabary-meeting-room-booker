@@ -1,0 +1,56 @@
+{
+  "implementation_steps": [
+    {
+      "step": 1,
+      "action": "Add top-level 'Research on DM' button with credits display",
+      "status": "pending",
+      "description": "Add button above table showing 'Research on DM (credits: 0/100)'"
+    },
+    {
+      "step": 2,
+      "action": "Create popup modal component",
+      "status": "pending",
+      "description": "Build popup with backdrop blur and centered content"
+    },
+    {
+      "step": 3,
+      "action": "Implement dynamic text animation",
+      "status": "pending",
+      "description": "Create 3-stage text: '1. fetching details', '2. just', '3. hang on tight' with erase/rebuild animation"
+    },
+    {
+      "step": 4,
+      "action": "Remove individual phone number buttons from table rows",
+      "status": "pending",
+      "description": "Delete per-row phone number fetch buttons"
+    },
+    {
+      "step": 5,
+      "action": "Implement bulk phone number fetch (5 at a time)",
+      "status": "pending",
+      "description": "After popup animation, fetch 5 phone numbers sequentially"
+    },
+    {
+      "step": 6,
+      "action": "Update breadcrumb navigation",
+      "status": "pending",
+      "description": "Change 'All Companies' to actual company name"
+    },
+    {
+      "step": 7,
+      "action": "Test popup animation and phone fetch flow",
+      "status": "pending",
+      "description": "Verify all animations and functionality work correctly"
+    }
+  ],
+  "status_tracking": {
+    "current_phase": "planning",
+    "completion_percentage": 0,
+    "blockers": [],
+    "dependencies": [
+      "Existing DecisionMakers component",
+      "Popup modal styling",
+      "Text animation CSS"
+    ]
+  }
+}

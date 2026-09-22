@@ -1,0 +1,59 @@
+# MAIN TASK
+Fix frontend API structure mismatch and group members UI bugs
+
+## PROJECT STRUCTURE
+Current relevant files that need to be working on:
+- frontend/src/lib/api.ts - API client functions
+- frontend/src/pages/StudentDashboard.tsx - Main booking dashboard
+- frontend/src/components/BookingModal.tsx - Booking form modal
+
+## IMPLEMENTATION PLAN
+High-level approach:
+1. Fix API response structure handling in api.ts
+2. Update StudentDashboard to correctly access rooms data
+3. Fix group members counter state management
+4. Fix remove button functionality
+
+## TASKS
+Please follow the JSON file exactly to:
+1. Update bookings.getAll() to extract rooms array from response structure
+2. Fix roomsData.data.rooms access in StudentDashboard
+3. Fix group members counter to start at 1 and increment correctly
+4. Implement working remove button for members array
+
+## IMPORTANT REQUIREMENTS
+
+⚠️ DO NOT MODIFY:
+- Backend API endpoints
+- Existing authentication logic
+- Other booking functionality
+
+✅ MUST PRESERVE:
+- Current API endpoint structure
+- Zod validation schemas
+- Component styling and layout
+
+✅ IMPLEMENT EXACTLY AS SHOWN:
+- Extract rooms array from { data: { rooms: [...] } } structure
+- Fix group members state to start at 1 member
+- Ensure remove button properly removes from fields array
+
+## REFERENCE WORK
+Use the code snippets in the JSON files as your implementation guide.
+Each file shows:
+- Which file to modify
+- What code to add/replace
+- What the new implementation should be
+
+## DATA MAPPING
+Backend API returns: { success: true, data: { rooms: [...] } }
+Frontend needs to access: roomsData?.data?.rooms
+Group members should start with 0 additional members (1 total including self)
+
+## SUCCESS CRITERIA
+After implementation:
+1. Rooms display correctly from backend API
+2. Group members counter starts at 1 (self)
+3. Clicking + adds member fields correctly
+4. Remove button removes members properly
+5. All data displays correctly in UI

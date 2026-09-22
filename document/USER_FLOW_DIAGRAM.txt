@@ -1,0 +1,612 @@
+================================================================================
+                    USER FLOW DIAGRAMS
+        PAF-IAST Library Room Booking System (Student Authentication Removal)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           CURRENT FLOW (BEFORE)                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+STUDENT FLOW:
+┌─────────────┐
+│ Visit Site  │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Login Page  │
+│  (Student)  │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│Enter Creds │
+│  (Reg# +    │
+│  Password)  │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│Authenticate │
+│   (JWT)     │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│Dashboard    │
+│ (Auth req)  │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Book Room   │
+│ (User data  │
+│ auto-filled)│
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Submit      │
+│ Booking     │
+└─────────────┘
+
+ADMIN FLOW (UNCHANGED):
+┌─────────────┐
+│ Visit /admin│
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Login Page  │
+│   (Admin)   │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│Enter Creds  │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│Admin Panel  │
+│   (Full     │
+│  Access)     │
+└─────────────┘
+
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            NEW FLOW (AFTER)                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+STUDENT FLOW (GUEST MODE):
+┌─────────────┐
+│ Visit /book │
+│ (No login   │
+│  required)   │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│Guest Form   │
+│  Appears    │
+│             │
+│ ┌─────────────────┐ │
+│ │ Registration#   │ │
+│ │ Name            │ │
+│ │ Phone           │ │
+│ │ Email           │ │
+│ │ Semester        │ │
+│ │                 │ │
+│ │  [Continue]     │ │
+│ └─────────────────┘ │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Validate    │
+│  Data       │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Show Booking│
+│ Interface   │
+│ (Calendar + │
+│  TimeSlots) │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│Select Date  │
+│ & Time      │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│Click Slot   │
+│(Available)  │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│BookingModal │
+│ Opens       │
+│             │
+│ Guest Data: │ ← Auto-filled from form
+│ • Reg#      │
+│ • Name      │
+│ • Phone     │
+│ • Email     │
+│ • Semester  │
+│             │
+│ Members:    │
+│ [Add 1-5]   │
+│             │
+│ [Submit]    │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│Submit       │
+│Booking      │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Success!    │
+│ Guest data  │
+│ cleared     │
+└─────────────┘
+
+ADMIN FLOW (UNCHANGED):
+┌─────────────┐
+│ Visit /admin│
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Redirected  │
+│ to /login   │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Admin Login │
+│ Form        │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│Enter Admin  │
+│ Credentials │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Admin Panel │
+│             │
+│ • View all  │
+│   bookings  │
+│ • Guest +    │
+│   Auth      │
+│ • Approve/   │
+│   Reject    │
+└─────────────┘
+
+================================================================================
+
+                    DATA FLOW DIAGRAM
+================================================================================
+
+BEFORE (Authenticated):
+┌─────────────┐
+│ User Login  │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ JWT Token   │
+│ Stored      │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ API Calls   │
+│ Include:    │
+│ • Auth hdr  │
+│ • Token     │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Backend     │
+│ Uses:       │
+│ • userId    │
+│ • JWT auth  │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Booking     │
+│ Created     │
+│ with userId │
+└─────────────┘
+
+AFTER (Guest Mode):
+┌─────────────┐
+│ Guest Form  │
+│ Filled      │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Guest Data  │
+│ Saved to:   │
+│ • Context   │
+│ • localStor.│
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Booking     │
+│ Modal       │
+│ Uses:       │
+│ • Guest     │
+│   context   │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ API Call    │
+│ Include:    │
+│ • Guest     │
+│   details   │
+│ • NO auth   │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Backend     │
+│ Stores:     │
+│ • regNo     │
+│ • student   │
+│   details   │
+│ • NO userId │
+└─────────────┘
+
+================================================================================
+
+                  COMPONENT INTERACTION DIAGRAM
+================================================================================
+
+App Structure:
+┌─────────────────────────────────────────────────┐
+│ App.tsx                                         │
+│                                                  │
+│  Routes:                                        │
+│  ├─ /book → StudentDashboard                    │
+│  │          (Guest access)                      │
+│  │                                             │
+│  ├─ /admin → AdminRoute → AdminDashboard       │
+│  │          (Admin auth required)              │
+│  │                                             │
+│  └─ /login → LoginPage                         │
+│             (Admin only)                       │
+└─────────────────────────────────────────────────┘
+                │       │       │
+                ▼       ▼       ▼
+┌──────────────┐ ┌─────┐ ┌──────────────┐
+│ AuthContext  │ │Guest│ │ AdminRoute   │
+│              │ │Ctx  │ │              │
+│ ├─ userType  │ │     │ │ ├─ Check     │
+│ ├─ isGuest   │ │     │ │   admin     │
+│ ├─ isAdmin   │ │     │ │ ├─ Redirect  │
+│ └─ login()   │ │     │ │   if needed │
+└──────────────┘ └─────┘ └──────────────┘
+       │             │
+       ▼             ▼
+┌────────────────────────────────┐
+│ StudentDashboard                │
+│                                │
+│ ├─ If !guestData              │
+│ │   └─> Show GuestForm       │
+│ │                             │
+│ └─ If guestData              │
+│      └─> Show Booking UI      │
+│          ├─ Calendar         │
+│          ├─ TimeSlotGrid     │
+│          └─ BookingModal     │
+└────────────────────────────────┘
+                │
+                ▼
+┌────────────────────────────────┐
+│ BookingModal                   │
+│                                │
+│ ├─ Get data from:             │
+│ │   ├─ GuestContext (guest)   │
+│ │   └─ AuthContext (auth)     │
+│ │                             │
+│ ├─ Submit with:               │
+│ │   └─ Guest student details │
+│ └─ API call: bookings.create()│
+└────────────────────────────────┘
+
+================================================================================
+
+                    FORM VALIDATION FLOW
+================================================================================
+
+Guest Form Validation:
+┌─────────────┐
+│ User Types  │
+│ in Field    │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ OnChange    │
+│ Event       │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Zod Schema  │
+│ Validation  │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Valid?      │
+└──────┬──────┘
+       │
+    YES │ NO
+       ▼       │
+┌─────────────┐ │
+│ Save to     │ │
+│ localStor.  │ │
+│ & Context   │ │
+└──────┬──────┘ │
+       │         │
+       ▼         ▼
+┌─────────────┐ ┌─────────────┐
+│ Field OK    │ │ Show Error  │
+│ (Green)     │ │ (Red)       │
+└─────────────┘ └─────────────┘
+
+Submit Flow:
+┌─────────────┐
+│ Click       │
+│ Submit      │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Validate    │
+│ All Fields  │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ All Valid?  │
+└──────┬──────┘
+       │
+   YES │ NO
+       ▼       │
+┌─────────────┐ │
+│ Proceed to  │ │
+│ Booking     │ │
+└──────┬──────┘ │
+       │         │
+       ▼         ▼
+┌─────────────┐ ┌─────────────┐
+│ Show        │ │ Show        │
+│ Calendar    │ │ Validation  │
+│ & Slots     │ │ Errors      │
+└─────────────┘ └─────────────┘
+
+================================================================================
+
+                    ROUTING & NAVIGATION FLOW
+================================================================================
+
+URL Structure:
+┌─────────────────────────────────────────────────┐
+│ Before:                                         │
+│  /login    → Student/Admin Login                │
+│  /student  → Student Dashboard (Protected)      │
+│  /admin    → Admin Dashboard (Admin Route)      │
+│  /         → Redirect to /login                 │
+└─────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────┐
+│ After:                                          │
+│  /book    → Student Dashboard (Guest Access)    │
+│  /admin   → Admin Dashboard (Admin Route)      │
+│  /login   → Admin Login Only                   │
+│  /        → Redirect to /book                  │
+└─────────────────────────────────────────────────┘
+
+Navigation Rules:
+┌─────────────────────────────────────────────────┐
+│ Student Page (/book):                           │
+│  ├─ Guest user → Show booking interface         │
+│  └─ Auth student → Show booking + history      │
+└─────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────┐
+│ Admin Page (/admin):                            │
+│  ├─ Not logged in → Redirect to /login         │
+│  ├─ Not admin → Redirect to /unauthorized      │
+│  └─ Admin → Show admin dashboard               │
+└─────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────┐
+│ Login Page (/login):                            │
+│  ├─ Show only admin login form                 │
+│  └─ Note: "Students book at /book"             │
+└─────────────────────────────────────────────────┘
+
+================================================================================
+
+                    BOOKING SUBMISSION FLOW
+================================================================================
+
+Data Collection:
+┌─────────────┐
+│ Get Source  │
+│ of Data     │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Guest?      │
+└──────┬──────┘
+       │
+   YES │ NO
+       ▼       │
+┌─────────────┐ │
+│ Use Guest   │ │
+│ Context     │ │
+│             │ │
+│ • regNo     │ │
+│ • name      │ │
+│ • phone     │ │
+│ • email     │ │
+│ • semester  │ │
+└──────┬──────┘ │
+       │         │
+       ▼         ▼
+┌─────────────┐ ┌─────────────┐
+│ Build       │ │ Use Auth    │
+│ Payload     │ │ User Data   │
+│             │ │             │
+│ {           │ │ {           │
+│  roomId,    │ │  roomId,    │
+│  regNo,     │ │  userId,    │
+│  name,      │ │  name,      │
+│  phone,     │ │  phone,     │
+│  email,     │ │  email,     │
+│  semester,  │ │  semester,  │
+│  members    │ │  members    │
+│ }           │ │ }           │
+└──────┬──────┘ └──────┬──────┘
+       │               │
+       └───────┬───────┘
+               │
+               ▼
+       ┌─────────────┐
+       │ API Call    │
+       │ POST        │
+       │ /bookings   │
+       └──────┬──────┘
+               │
+               ▼
+       ┌─────────────┐
+       │ Success?    │
+       └──────┬──────┘
+               │
+          YES │ NO
+               ▼       │
+       ┌─────────────┐ │
+       │ Clear Guest │ │
+       │ Data        │ │
+       │ Show        │ │
+       │ Success     │ │
+       └──────┬──────┘ │
+               │         │
+               ▼         ▼
+       ┌─────────────┐ ┌─────────────┐
+       │ Booking     │ │ Show Error  │
+       │ Created!    │ │ Message     │
+       └─────────────┘ └─────────────┘
+
+================================================================================
+
+                    STATE MANAGEMENT DIAGRAM
+================================================================================
+
+AuthContext State:
+┌─────────────────────────────────────────────────┐
+│ AuthContext                                    │
+│                                                 │
+│ ┌───────────────────────────────────────────┐  │
+│ │ State:                                    │  │
+│ │  ├─ user: Student | null                 │  │
+│ │  ├─ token: string | null                 │  │
+│ │  ├─ userType: 'GUEST' | 'STUDENT' |      │  │
+│ │              'ADMIN'                     │  │
+│ │  ├─ isAuthenticated: boolean             │  │
+│ │  ├─ isAdmin: boolean                     │  │
+│ │  └─ isGuest: boolean                     │  │
+│ └───────────────────────────────────────────┘  │
+│                                                 │
+│ ┌───────────────────────────────────────────┐  │
+│ │ Methods:                                  │  │
+│ │  ├─ login(token, user, type)             │  │
+│ │  ├─ logout()                              │  │
+│ │  ├─ setGuestMode(guestData)              │  │
+│ │  └─ exitGuestMode()                      │  │
+│ └───────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────┘
+           │                    │
+           ▼                    ▼
+┌─────────────────────┐  ┌─────────────────────┐
+│ GuestContext        │  │ ProtectedRoute      │
+│                     │  │                     │
+│ ┌─────────────────┐ │  │ ┌─────────────────┐ │
+│ │ State:         │ │  │ │ Logic:          │ │
+│ │  ├─ guestData  │ │  │ │  ├─ Guest user  │ │
+│ │  └─ isGuest    │ │  │ │    → Allow     │ │
+│ └─────────────────┘ │  │ │  ├─ Auth user   │ │
+│                     │  │ │    → Check auth│ │
+│ ┌─────────────────┐ │  │ │  └─ No user    │ │
+│ │ Methods:        │ │  │ │    → Redirect │ │
+│ │  ├─ set()       │ │  │ └─────────────────┘ │
+│ │  ├─ get()       │ │  │                     │
+│ │  ├─ clear()     │ │  │                     │
+│ │  └─ validate()  │ │  │                     │
+│ └─────────────────┘ │  │                     │
+└─────────────────────┘  └─────────────────────┘
+
+Data Flow:
+┌─────────────┐
+│ GuestForm   │
+│ (Component) │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Update      │
+│ GuestContext│
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Persist to  │
+│ localStorage│
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ BookingModal│
+│ Reads       │
+│ Guest Data  │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Submit with │
+│ Guest Data  │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│ Clear       │
+│ Guest Data  │
+└─────────────┘
+
+================================================================================
+
+END OF USER FLOW DIAGRAMS
+================================================================================

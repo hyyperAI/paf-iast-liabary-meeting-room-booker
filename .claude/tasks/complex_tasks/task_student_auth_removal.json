@@ -1,0 +1,89 @@
+{
+  "taskName": "student_auth_removal",
+  "description": "Remove student login functionality completely while keeping admin authentication intact. Transform system to allow guest bookings where students can book rooms without creating accounts or logging in.",
+  "goal": "Students book rooms directly at /book URL by filling a student details form, while administrators retain full login functionality for managing bookings.",
+  "currentState": {
+    "problem": "Students must register accounts and login before booking study rooms",
+    "flow": "Student visits site → Login Page → Enter credentials → Authenticate → Dashboard → Book Room",
+    "affectedUsers": "All students need authentication before booking"
+  },
+  "targetState": {
+    "solution": "Students can book without login, admin authentication preserved",
+    "flow": "Student visits /book → Fill details form → Select room/time → Book room (No login required)",
+    "affectedUsers": "Students: No login needed. Admins: Must login as before"
+  },
+  "finalResult": "A fully functional guest booking system where students can book rooms immediately without authentication, while admin dashboard remains unchanged with full authentication requirements.",
+  "businessImpact": {
+    "benefits": [
+      "Reduced friction: 4 clicks reduced to 2 clicks for students",
+      "No account management required",
+      "Faster booking process",
+      "Higher booking completion rate expected",
+      "Reduced support for password/registration issues"
+    ],
+    "preserved": [
+      "Admin authentication unchanged",
+      "Booking logic same",
+      "Queue management unchanged",
+      "Admin dashboard fully functional"
+    ]
+  },
+  "complexity": {
+    "level": "Complex",
+    "filesAffected": {
+      "created": 2,
+      "modified": 10,
+      "unchanged": 15
+    },
+    "components": 8,
+    "estimatedDays": "6-7 days",
+    "riskLevel": "Medium - Well planned with rollback strategy"
+  },
+  "mainRequirements": {
+    "mustHave": [
+      "Students can book without login",
+      "Admin authentication preserved",
+      "Guest student data collected in form",
+      "Form validation implemented",
+      "Data persistence during session",
+      "Booking submission works with guest data"
+    ],
+    "mustNot": [
+      "Break admin authentication",
+      "Modify backend unnecessarily",
+      "Remove existing functionality",
+      "Create breaking changes"
+    ],
+    "shouldHave": [
+      "localStorage persistence",
+      "Form validation",
+      "Good UX flow",
+      "Accessibility compliance"
+    ]
+  },
+  "keyDecisions": [
+    "GuestContext for temporary data storage",
+    "localStorage for session persistence",
+    "Preserve admin route protection",
+    "Update API to accept guest data",
+    "Keep booking queue logic unchanged"
+  ],
+  "testingStrategy": [
+    "Guest booking flow end-to-end",
+    "Admin authentication unchanged",
+    "Form validation edge cases",
+    "Data persistence tests",
+    "Browser refresh during booking"
+  ],
+  "rollbackPlan": {
+    "steps": [
+      "Restore AuthContext backup",
+      "Restore LoginPage with student option",
+      "Remove GuestContext",
+      "Revert routing changes"
+    ],
+    "timeRequired": "30 minutes"
+  },
+  "status": "Planning Complete - Ready for Implementation",
+  "nextPhase": "Frontend Implementation"
+}

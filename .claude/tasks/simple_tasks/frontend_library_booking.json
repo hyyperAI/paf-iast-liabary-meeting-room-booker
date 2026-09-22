@@ -1,0 +1,294 @@
+{
+  "phase": "frontend_implementation",
+  "focus": "React/TypeScript Frontend Development",
+  "objective": "Build complete user interface with React, TypeScript, and Tailwind CSS",
+  "environment_setup": {
+    "directory": "/frontend",
+    "steps": [
+      {
+        "step": 1,
+        "action": "Create Vite + React + TypeScript project",
+        "command": "npm create vite@latest . -- --template react-ts",
+        "description": "Initialize React project with TypeScript template"
+      },
+      {
+        "step": 2,
+        "action": "Install dependencies",
+        "command": "npm install",
+        "description": "Install base dependencies"
+      },
+      {
+        "step": 3,
+        "action": "Install UI and styling libraries",
+        "command": "npm install tailwindcss postcss autoprefixer @headlessui/react",
+        "description": "Install Tailwind CSS and Headless UI"
+      },
+      {
+        "step": 4,
+        "action": "Initialize Tailwind CSS",
+        "command": "npx tailwindcss init -p",
+        "description": "Create Tailwind configuration files"
+      },
+      {
+        "step": 5,
+        "action": "Install state management",
+        "command": "npm install @tanstack/react-query",
+        "description": "Install TanStack Query for server state"
+      },
+      {
+        "step": 6,
+        "action": "Install form handling",
+        "command": "npm install react-hook-form @hookform/resolvers zod",
+        "description": "Install React Hook Form with Zod validation"
+      },
+      {
+        "step": 7,
+        "action": "Install utilities",
+        "command": "npm install axios date-fns",
+        "description": "Install axios for API calls and date-fns for date handling"
+      },
+      {
+        "step": 8,
+        "action": "Install routing",
+        "command": "npm install react-router-dom",
+        "description": "Install React Router for navigation"
+      },
+      {
+        "step": 9,
+        "action": "Install animations",
+        "command": "npm install framer-motion",
+        "description": "Install Framer Motion for animations"
+      }
+    ]
+  },
+  "ui_specification": {
+    "design_system": {
+      "color_palette": {
+        "primary": "Blue (#3B82F6)",
+        "success": "Green (#10B981)",
+        "warning": "Yellow (#F59E0B)",
+        "danger": "Red (#EF4444)",
+        "neutral": "Gray (#6B7280)"
+      },
+      "slot_colors": {
+        "active": "bg-green-100 border-green-500 text-green-800",
+        "pending": "bg-yellow-100 border-yellow-500 text-yellow-800",
+        "approved": "bg-blue-100 border-blue-500 text-blue-800",
+        "expired": "bg-gray-100 border-gray-400 text-gray-500"
+      },
+      "typography": {
+        "font_family": "Inter, system-ui, sans-serif",
+        "heading_sizes": {
+          "h1": "text-3xl font-bold",
+          "h2": "text-2xl font-semibold",
+          "h3": "text-xl font-medium"
+        }
+      },
+      "spacing": {
+        "section": "p-6",
+        "card": "p-4",
+        "button": "px-4 py-2",
+        "form_field": "mb-4"
+      }
+    }
+  },
+  "component_architecture": {
+    "layout": {
+      "MainLayout": {
+        "description": "Root layout component with navigation",
+        "components": ["Header", "Sidebar", "MainContent", "Footer"]
+      }
+    },
+    "pages": [
+      {
+        "name": "LoginPage",
+        "path": "/login",
+        "components": ["LoginForm", "RoleSelector"],
+        "description": "User authentication page"
+      },
+      {
+        "name": "StudentDashboard",
+        "path": "/student",
+        "components": ["Calendar", "RoomSelector", "TimeSlotGrid", "BookingModal"],
+        "description": "Student booking interface"
+      },
+      {
+        "name": "AdminDashboard",
+        "path": "/admin",
+        "components": ["AdminNav", "RoomTabs", "BookingQueue", "ApprovalActions"],
+        "description": "Admin dashboard for managing bookings"
+      },
+      {
+        "name": "DataManagement",
+        "path": "/admin/data",
+        "components": ["SearchFilters", "DataTable", "ExportButton"],
+        "description": "Data management and reporting page"
+      }
+    ],
+    "shared_components": [
+      {
+        "name": "Calendar",
+        "props": ["selectedDate", "onDateSelect", "availableDates"],
+        "description": "Calendar component for date selection"
+      },
+      {
+        "name": "TimeSlotGrid",
+        "props": ["slots", "onSlotSelect", "selectedSlot"],
+        "description": "2x4 grid of time slots"
+      },
+      {
+        "name": "BookingModal",
+        "props": ["isOpen", "onClose", "slotData", "onSubmit"],
+        "description": "Modal for booking form"
+      },
+      {
+        "name": "QueueList",
+        "props": ["bookings", "onApprove", "onReject"],
+        "description": "Expandable queue list"
+      },
+      {
+        "name": "GroupMemberFields",
+        "props": ["members", "onAdd", "onRemove", "onChange"],
+        "description": "Dynamic group member input fields"
+      }
+    ]
+  },
+  "ui_diagrams": {
+    "student_dashboard": {
+      "structure": "┌─────────────────────────────────────────┐\n│ Header (Logo, User Menu, Logout)         │\n├─────────────────────────────────────────┤\n│ Calendar Component                       │\n│ ┌─────────────────────────────────────┐ │\n│ │  <  January 2025  >                 │ │\n│ │  Mon Tue Wed Thu Fri Sat Sun        │ │\n│ │   6   7   8   9  10  11  12        │ │\n│ │  [6] [7] [8] [9] [10]      (disabled)│ │\n│ └─────────────────────────────────────┘ │\n├─────────────────────────────────────────┤\n│ Room Selection                           │\n│ ┌─────────────┐ ┌─────────────┐        │\n│ │  Room 1     │ │  Room 2     │        │\n│ │  [Selected]  │ │             │        │\n│ └─────────────┘ └─────────────┘        │\n├─────────────────────────────────────────┤\n│ Time Slot Grid (2x4)                     │\n│ ┌───────────┐ ┌───────────┐            │\n│ │9:00-10:00 │ │10:00-11:00│            │\n│ │ [GREEN]   │ │ [YELLOW]  │            │\n│ │ Queue: 0/5│ │ Queue: 2/5│            │\n│ └───────────┘ └───────────┘            │\n│ ┌───────────┐ ┌───────────┐            │\n│ │11:00-12:00│ │12:00-13:00│            │\n│ │ [RED]     │ │ [GREEN]   │            │\n│ │ FULL      │ │ Available │            │\n│ └───────────┘ └───────────┘            │\n└─────────────────────────────────────────┘",
+      "color_legend": {
+        "GREEN": "Available (ACTIVE)",
+        "YELLOW": "In Queue (PENDING)",
+        "RED": "Full/Booked (APPROVED)",
+        "GRAY": "Expired/Weekend"
+      }
+    },
+    "booking_modal": {
+      "structure": "┌─────────────────────────────────────┐\n│ Booking Details                         │\n│ Room: 1  |  Date: Jan 6  |  9:00-10:00 │\n├─────────────────────────────────────┤\n│ Applicant Information                 │\n│ Name: [____________]                  │\n│ Reg No: [____________]                │\n│ Phone: [____________]                │\n│ Email: [____________]                 │\n│ Semester: [____________]              │\n├─────────────────────────────────────┤\n│ Group Members (Optional)              │\n│ Member 1: [____________]              │\n│ Member 2: [____________]              │\n│ [+ Add Member]                        │\n├─────────────────────────────────────┤\n│ [Cancel]              [Submit Booking]│\n└─────────────────────────────────────┘"
+    },
+    "admin_dashboard": {
+      "structure": "┌─────────────────────────────────────────┐\n│ Admin Dashboard                         │\n├─────────────────────────────────────────┤\n│ Nav Tabs: [Room 1] [Room 2] [Data]    │\n├─────────────────────────────────────────┤\n│ Calendar (Month View)                   │\n├─────────────────────────────────────────┤\n│ Time Slots (2x4 Grid)                   │\n│ ┌───────────┐ ┌───────────┐            │\n│ │9:00-10:00 │ │10:00-11:00│            │\n│ │   [▼]     │ │   [▼]     │            │\n│ └───────────┘ └───────────┘            │\n│                                       │\n│ Expanded Queue (when clicked):         │\n│ ┌─────────────────────────────────┐   │\n│ │ Queue: 3/5                      │   │\n│ │ 1. John Doe (Reg: 12345)       │   │\n│ │    [Approve] [Reject]           │   │\n│ │ 2. Jane Smith (Reg: 67890)     │   │\n│ │    [Approve] [Reject]           │   │\n│ │ 3. Bob Johnson (Reg: 11111)     │   │\n│ │    [Approve] [Reject]           │   │\n│ └─────────────────────────────────┘   │\n└─────────────────────────────────────────┘"
+    }
+  },
+  "state_management": {
+    "query_client": {
+      "setup": "TanStack Query provider for API caching",
+      "queries": [
+        "useRooms - Fetch all rooms",
+        "useBookings - Fetch bookings",
+        "useMyBookings - Fetch student's bookings",
+        "useQueue - Fetch queue status",
+        "useStudents - Fetch students (admin)"
+      ],
+      "mutations": [
+        "useCreateBooking - Create new booking",
+        "useApproveBooking - Approve booking (admin)",
+        "useRejectBooking - Reject booking (admin)",
+        "useCancelBooking - Cancel booking"
+      ]
+    },
+    "local_state": {
+      "selectedRoom": "Currently selected room (1 or 2)",
+      "selectedDate": "Selected booking date",
+      "selectedTime": "Selected time slot",
+      "bookingModal": "Modal open/close state",
+      "formData": "Booking form data"
+    }
+  },
+  "api_integration": {
+    "client_setup": "Axios instance with base URL and interceptors",
+    "auth_interceptor": "Attach JWT token to requests",
+    "error_interceptor": "Handle API errors globally",
+    "endpoints": {
+      "auth": {
+        "login": "POST /api/v1/auth/login",
+        "register": "POST /api/v1/auth/register"
+      },
+      "rooms": {
+        "list": "GET /api/v1/rooms",
+        "availability": "GET /api/v1/rooms/:id/availability"
+      },
+      "bookings": {
+        "create": "POST /api/v1/bookings",
+        "approve": "PUT /api/v1/bookings/:id/approve",
+        "reject": "PUT /api/v1/bookings/:id/reject",
+        "my": "GET /api/v1/bookings/my"
+      }
+    }
+  },
+  "form_validation": {
+    "booking_form": {
+      "applicant_name": "Required, min 2 chars",
+      "registration_no": "Required, unique format",
+      "phone_number": "Required, valid phone format",
+      "email": "Required, valid email format",
+      "semester": "Required",
+      "group_members": "Optional, max 4 additional members"
+    },
+    "validation_library": "Zod schemas with react-hook-form",
+    "error_display": "Inline error messages with icons"
+  },
+  "routing": {
+    "routes": [
+      { "path": "/", "redirect": "/login" },
+      { "path": "/login", "component": "LoginPage" },
+      { "path": "/student", "component": "StudentDashboard", "protected": true },
+      { "path": "/admin", "component": "AdminDashboard", "protected": true, "admin_only": true },
+      { "path": "/admin/data", "component": "DataManagement", "protected": true, "admin_only": true }
+    ],
+    "auth_guard": "ProtectedRoute component for auth checking",
+    "role_guard": "AdminRoute component for admin-only pages"
+  },
+  "responsive_design": {
+    "breakpoints": {
+      "mobile": "sm: 640px",
+      "tablet": "md: 768px",
+      "desktop": "lg: 1024px",
+      "wide": "xl: 1280px"
+    },
+    "mobile_adaptations": [
+      "Calendar becomes scrollable horizontally",
+      "Time slots stack vertically on mobile",
+      "Booking modal becomes full screen on mobile",
+      "Admin queue expands below slot (not inline)"
+    ]
+  },
+  "accessibility": {
+    "features": [
+      "Keyboard navigation support",
+      "Screen reader compatible",
+      "Focus indicators on all interactive elements",
+      "ARIA labels on all icons and buttons",
+      "Color contrast compliance (WCAG 2.1 AA)"
+    ]
+  },
+  "animations": {
+    "library": "Framer Motion",
+    "use_cases": [
+      "Page transitions with fade/slide",
+      "Modal open/close with scale",
+      "Time slot hover effects",
+      "Queue expand/collapse",
+      "Loading spinners for async operations",
+      "Success/error notification slides"
+    ]
+  },
+  "performance_optimization": {
+    "techniques": [
+      "React.memo for expensive components",
+      "useMemo for computed values",
+      "useCallback for event handlers",
+      "Lazy loading for routes",
+      "Image optimization",
+      "Bundle splitting"
+    ]
+  },
+  "testing": {
+    "frameworks": ["Vitest", "React Testing Library", "Cypress"],
+    "test_types": [
+      "Unit tests for components",
+      "Integration tests for user flows",
+      "E2E tests for critical paths"
+    ]
+  }
+}

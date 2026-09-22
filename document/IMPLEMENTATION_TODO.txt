@@ -1,0 +1,412 @@
+================================================================================
+                    IMPLEMENTATION TODO TRACKER
+            Student Authentication Removal - Task Tracking
+================================================================================
+
+Instructions:
+- [ ] Mark tasks as complete by changing [ ] to [x]
+- Update date when completed
+- Add notes as needed
+
+================================================================================
+PRE-IMPLEMENTATION
+================================================================================
+
+Preparation Tasks:
+[ ] Review all guide files
+[ ] Create backup of current state
+[ ] Read REFACTORING_PLAN.md
+[ ] Read USER_FLOW_DIAGRAM.txt
+[ ] Read IMPLEMENTATION_GUIDE.txt
+[ ] Check QUICK_REFERENCE.md
+[ ] Understand the flow changes
+
+Date Started: _______________
+Notes:
+_____________________________________________________________________
+_____________________________________________________________________
+
+================================================================================
+PHASE 1: SETUP & CONTEXT CREATION
+================================================================================
+
+Task 1: Create GuestContext
+[ ] File: src/contexts/GuestContext.tsx
+[ ] Implement state management for guest student data
+[ ] Add localStorage persistence
+[ ] Add validation methods
+[ ] Test context functionality
+Date: _______________
+Notes:
+_____________________________________________________________________
+
+Task 2: Create GuestForm Component
+[ ] File: src/components/GuestForm.tsx
+[ ] Build form with react-hook-form + zod
+[ ] Add validation rules
+[ ] Implement auto-save to localStorage
+[ ] Test form validation
+[ ] Test data persistence
+Date: _______________
+Notes:
+_____________________________________________________________________
+
+================================================================================
+PHASE 2: AUTHENTICATION REFACTORING
+================================================================================
+
+Task 3: Refactor AuthContext
+[ ] File: src/contexts/AuthContext.tsx
+[ ] Add userType property
+[ ] Add isGuest helper method
+[ ] Modify login() method
+[ ] Update logout() method
+[ ] Add guest mode methods
+[ ] Test auth context changes
+Date: _______________
+Notes:
+_____________________________________________________________________
+
+Task 4: Update Auth Error Handler
+[ ] File: src/hooks/useAuthErrorHandler.ts
+[ ] Update to handle guest state
+[ ] Test error handling for guests
+Date: _______________
+Notes:
+_____________________________________________________________________
+
+================================================================================
+PHASE 3: ROUTING STRUCTURE UPDATE
+================================================================================
+
+Task 5: Update App.tsx Routing
+[ ] File: src/App.tsx
+[ ] Add /book route
+[ ] Update /admin route
+[ ] Update /login route
+[ ] Update default redirect
+[ ] Test routing changes
+Date: _______________
+Notes:
+_____________________________________________________________________
+
+Task 6: Update ProtectedRoute
+[ ] File: src/components/ProtectedRoute.tsx
+[ ] Allow guest access
+[ ] Update redirect logic
+[ ] Test protected route
+Date: _______________
+Notes:
+_____________________________________________________________________
+
+================================================================================
+PHASE 4: STUDENT DASHBOARD TRANSFORMATION
+================================================================================
+
+Task 7: Transform StudentDashboard
+[ ] File: src/pages/StudentDashboard.tsx
+[ ] Import GuestContext
+[ ] Check for guest data on mount
+[ ] Show GuestForm if no data
+[ ] Show booking interface if data exists
+[ ] Add "Change Student Details" option
+[ ] Update header for guests
+[ ] Hide "My Bookings" tab for guests
+[ ] Test dashboard functionality
+Date: _______________
+Notes:
+_____________________________________________________________________
+
+================================================================================
+PHASE 5: BOOKING FLOW UPDATES
+================================================================================
+
+Task 8: Update BookingModal
+[ ] File: src/components/BookingModal.tsx
+[ ] Import GuestContext
+[ ] Use guest student data if available
+[ ] Update validation for guest data
+[ ] Update submission payload
+[ ] Test booking modal
+Date: _______________
+Notes:
+_____________________________________________________________________
+
+Task 9: Update API Client
+[ ] File: src/lib/api.ts
+[ ] Update bookings.create()
+[ ] Support guest data submission
+[ ] Keep admin authentication
+[ ] Test API calls
+Date: _______________
+Notes:
+_____________________________________________________________________
+
+================================================================================
+PHASE 6: TYPE DEFINITIONS UPDATE
+================================================================================
+
+Task 10: Update Type Definitions
+[ ] File: src/types/api.ts
+[ ] Add GuestStudent interface
+[ ] Update Booking interface
+[ ] Make studentId optional
+[ ] Update BookingFormData
+[ ] Test type compilation
+Date: _______________
+Notes:
+_____________________________________________________________________
+
+================================================================================
+PHASE 7: LOGIN PAGE SIMPLIFICATION
+================================================================================
+
+Task 11: Simplify LoginPage
+[ ] File: src/pages/LoginPage.tsx
+[ ] Remove student/admin toggle
+[ ] Keep only admin login
+[ ] Update title and description
+[ ] Add helper text for guest booking
+[ ] Test login page
+Date: _______________
+Notes:
+_____________________________________________________________________
+
+================================================================================
+PHASE 8: STYLING & UX ENHANCEMENTS
+================================================================================
+
+Task 12: Update Styles
+[ ] File: src/index.css
+[ ] Add .guest-badge styles
+[ ] Add .guest-form styles
+[ ] Add .guest-header styles
+[ ] Test styles
+Date: _______________
+Notes:
+_____________________________________________________________________
+
+================================================================================
+TESTING PHASE
+================================================================================
+
+Guest Booking Flow Tests:
+[ ] Visit /book without login
+[ ] GuestForm appears automatically
+[ ] Fill student details form
+[ ] Validation errors show correctly
+[ ] Submit with valid data
+[ ] Booking modal opens
+[ ] Guest data pre-filled correctly
+[ ] Submit booking
+[ ] Success message appears
+[ ] Guest data cleared after booking
+Date: _______________
+Notes:
+_____________________________________________________________________
+
+Admin Flow Tests:
+[ ] Visit /admin redirects to /login
+[ ] Login with admin credentials
+[ ] Admin dashboard loads
+[ ] See guest bookings
+[ ] Approve/reject bookings
+[ ] Logout works
+Date: _______________
+Notes:
+_____________________________________________________________________
+
+Data Persistence Tests:
+[ ] Fill guest form partially
+[ ] Refresh page
+[ ] Data restored
+[ ] Complete form
+[ ] Submit booking
+[ ] Data cleared
+Date: _______________
+Notes:
+_____________________________________________________________________
+
+Form Validation Tests:
+[ ] Try to submit empty form
+[ ] Validation errors appear
+[ ] Enter invalid registration number
+[ ] Error message shows
+[ ] Enter valid data
+[ ] Validation passes
+Date: _______________
+Notes:
+_____________________________________________________________________
+
+Edge Case Tests:
+[ ] Refresh page during guest booking
+[ ] Navigate away and return
+[ ] Try to book without filling form
+[ ] Enter invalid data
+[ ] Network error during booking
+[ ] Duplicate booking attempt
+Date: _______________
+Notes:
+_____________________________________________________________________
+
+================================================================================
+BUG FIXES & REFINEMENTS
+================================================================================
+
+Bug 1: Description: ________________________________________
+[ ] Identified
+[ ] Root cause found
+[ ] Fix implemented
+[ ] Tested
+Date Fixed: _______________
+Notes:
+_____________________________________________________________________
+
+Bug 2: Description: ________________________________________
+[ ] Identified
+[ ] Root cause found
+[ ] Fix implemented
+[ ] Tested
+Date Fixed: _______________
+Notes:
+_____________________________________________________________________
+
+Bug 3: Description: ________________________________________
+[ ] Identified
+[ ] Root cause found
+[ ] Fix implemented
+[ ] Tested
+Date Fixed: _______________
+Notes:
+_____________________________________________________________________
+
+Bug 4: Description: ________________________________________
+[ ] Identified
+[ ] Root cause found
+[ ] Fix implemented
+[ ] Tested
+Date Fixed: _______________
+Notes:
+_____________________________________________________________________
+
+Bug 5: Description: ________________________________________
+[ ] Identified
+[ ] Root cause found
+[ ] Fix implemented
+[ ] Tested
+Date Fixed: _______________
+Notes:
+_____________________________________________________________________
+
+================================================================================
+FINAL VALIDATION
+================================================================================
+
+Overall System Tests:
+[ ] All guest booking flows work
+[ ] Admin authentication unchanged
+[ ] Form validations work correctly
+[ ] Guest data persists during session
+[ ] Booking submission works
+[ ] Admin can manage guest bookings
+[ ] No breaking changes
+[ ] Accessibility maintained
+[ ] Performance unchanged
+Date: _______________
+Notes:
+_____________________________________________________________________
+
+Code Quality Checks:
+[ ] All TypeScript types compile
+[ ] No ESLint errors
+[ ] Code follows existing patterns
+[ ] Comments added where needed
+[ ] Console logs removed (except dev)
+[ ] Unused code removed
+Date: _______________
+Notes:
+_____________________________________________________________________
+
+================================================================================
+DOCUMENTATION
+================================================================================
+
+Documentation Tasks:
+[ ] Update README.md if exists
+[ ] Add inline code comments
+[ ] Update component prop documentation
+[ ] Add migration notes
+Date: _______________
+Notes:
+_____________________________________________________________________
+
+================================================================================
+DEPLOYMENT PREPARATION
+================================================================================
+
+Deployment Checklist:
+[ ] Build successful (npm run build)
+[ ] No TypeScript errors
+[ ] No runtime errors
+[ ] Environment variables configured
+[ ] Backend updated (if needed)
+[ ] Database schema updated (if needed)
+Date: _______________
+Notes:
+_____________________________________________________________________
+
+================================================================================
+COMPLETION SUMMARY
+================================================================================
+
+Date Started: _______________
+Date Completed: _______________
+
+Total Tasks: 12 major tasks
+Completed: _____ / 12
+
+Total Test Cases: Multiple
+Passed: _____ / _____
+
+Bugs Found: _____
+Bugs Fixed: _____
+
+Overall Status:
+[ ] In Progress
+[ ] Testing
+[ ] Bug Fixes
+[ ] Complete
+[ ] Deployed
+
+================================================================================
+LESSONS LEARNED
+================================================================================
+
+What went well:
+_____________________________________________________________________
+_____________________________________________________________________
+_____________________________________________________________________
+
+What could be improved:
+_____________________________________________________________________
+_____________________________________________________________________
+_____________________________________________________________________
+
+Important notes for future:
+_____________________________________________________________________
+_____________________________________________________________________
+_____________________________________________________________________
+
+================================================================================
+SIGN-OFF
+================================================================================
+
+Implementation by: _________________________________
+Reviewed by: ____________________________________
+Approved by: ____________________________________
+
+Date: __________________________________________
+
+================================================================================
+END OF TODO TRACKER
+================================================================================

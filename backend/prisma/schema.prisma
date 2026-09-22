@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Note: SQLite doesn't support enums, using String with check constraints
+
+model Room {
+  id            String    @id @default(cuid())
+  roomNumber    Int
+  date          DateTime
+  timeSlot      String
+  status        String    @default("ACTIVE") // ACTIVE, PENDING, APPROVED
+  queueCount    Int       @default(0)
+  maxQueue      Int       @default(5)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relationships
+  bookings      Booking[]
+
+  @@unique([roomNumber, date, timeSlot])
+  @@index([roomNumber, date])
+  @@index([date])
+}
+
+model Student {
+  id              String    @id @default(cuid())
+  registrationNo  String    @unique
+  phoneNumber     String
+  email           String
+  semester        String
+  password        String
+  role            String    @default("STUDENT") // STUDENT, ADMIN
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relationships
+  bookings        Booking[]
+}
+
+model Booking {
+  id                  String    @id @default(cuid())
+  studentId           String
+  roomId              String
+  applicantName       String
+  applicantPhone      String
+  applicantEmail      String
+  applicantSemester   String
+  groupMemberCount    Int       @default(0)
+  requestStatus       String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  queuePosition       Int       @default(0)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  // Relationships
+  student             Student   @relation(fields: [studentId], references: [id])
+  room                Room      @relation(fields: [roomId], references: [id])
+  members             Member[]
+
+  @@index([studentId])
+  @@index([roomId])
+  @@index([requestStatus])
+}
+
+model Member {
+  id              String   @id @default(cuid())
+  bookingId       String
+  name            String
+  registrationNo  String
+  createdAt       DateTime @default(now())
+
+  // Relationships
+  booking         Booking  @relation(fields: [bookingId], references: [id])
+
+  @@index([bookingId])
+}

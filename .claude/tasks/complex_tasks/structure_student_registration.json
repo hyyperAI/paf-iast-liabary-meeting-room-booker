@@ -1,0 +1,101 @@
+{
+  "architecture": {
+    "task": "student_registration",
+    "overview": "Student self-registration feature for the PAF-IAST Library Management System",
+    "layer": "frontend",
+    "pattern": "form-based authentication flow"
+  },
+  "file_structure": {
+    "current_state": {
+      "frontend/src/App.tsx": {
+        "status": "COMMENTED_OUT",
+        "changes_needed": [
+          "Uncomment RegisterPage import",
+          "Uncomment /register route"
+        ]
+      },
+      "frontend/src/pages/LoginPage.tsx": {
+        "status": "COMMENTED_OUT",
+        "changes_needed": [
+          "Uncomment registration link section"
+        ]
+      },
+      "frontend/src/pages/RegisterPage.tsx": {
+        "status": "IMPLEMENTED",
+        "ready": true,
+        "description": "Complete registration page component ready to use"
+      }
+    },
+    "files_to_modify": [
+      {
+        "path": "frontend/src/App.tsx",
+        "type": "routing_configuration",
+        "modifications": [
+          "Uncomment import statement",
+          "Uncomment route definition"
+        ]
+      },
+      {
+        "path": "frontend/src/pages/LoginPage.tsx",
+        "type": "ui_component",
+        "modifications": [
+          "Uncomment registration link JSX block"
+        ]
+      }
+    ],
+    "files_no_change": [
+      "frontend/src/pages/RegisterPage.tsx - Already implemented",
+      "frontend/src/components/ui/Button.tsx - Already exists",
+      "frontend/src/components/ui/Input.tsx - Already exists",
+      "frontend/src/components/ui/Card.tsx - Already exists"
+    ]
+  },
+  "data_flow": {
+    "user_registration_flow": {
+      "step_1": "User clicks 'Register here' link on LoginPage",
+      "step_2": "Navigate to /register route",
+      "step_3": "RegisterPage component renders with form",
+      "step_4": "User fills form and submits",
+      "step_5": "Zod validation validates all fields",
+      "step_6": "React Query mutation calls auth.register API",
+      "step_7": "Backend processes registration",
+      "step_8": "On success: show alert and redirect to /login",
+      "step_9": "On error: display error message"
+    },
+    "api_integration": {
+      "endpoint": "POST /auth/register",
+      "mutation": "useMutation from @tanstack/react-query",
+      "success_action": "navigate('/login') with success alert",
+      "error_action": "display error in form"
+    }
+  },
+  "state_management": {
+    "form_state": "React Hook Form handles form state",
+    "validation_state": "Zod schema with @hookform/resolvers",
+    "mutation_state": "TanStack Query mutation (isPending, error, data)",
+    "routing_state": "React Router navigate function"
+  },
+  "dependencies": {
+    "runtime": [
+      "react",
+      "react-router-dom",
+      "@tanstack/react-query",
+      "react-hook-form",
+      "@hookform/resolvers/zod",
+      "zod"
+    ],
+    "ui": [
+      "Button component",
+      "Input component",
+      "Card component"
+    ]
+  },
+  "routing": {
+    "new_route": {
+      "path": "/register",
+      "component": "RegisterPage",
+      "access": "public (no authentication required)",
+      "redirects_to": "/login after successful registration"
+    }
+  }
+}
